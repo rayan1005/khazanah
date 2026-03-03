@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "916281932211",
+    "project_id": "khazanah-49252",
+    "storage_bucket": "khazanah-49252.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:916281932211:android:30b6f4874e744a3166b3c6",
+        "android_client_info": {
+          "package_name": "com.khazanah.khazanah"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArlw3E297RTN83hwjiwlFj6plcwUY1T-Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

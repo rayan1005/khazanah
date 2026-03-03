@@ -1,0 +1,128 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isNotBanned() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBanned != true;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+    
+    // Posts collection
+    match /posts/{postId} {
+      allow read: if true; // Public read
+      allow create: if isAuthenticated() && isNotBanned();
+      allow update: if isOwner(resource.data.userId) || isAdmin();
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+    
+    // Categories collection
+    match /categories/{categoryId} {
+      allow read: if true; // Public read
+      allow write: if isAdmin();
+    }
+    
+    // Brands collection
+    match /brands/{brandId} {
+      allow read: if true; // Public read
+      allow write: if isAdmin();
+    }
+    
+    // Chats collection
+    match /chats/{chatId} {
+      allow read: if isAuthenticated() && 
+        request.auth.uid in resource.data.participants;
+      allow create: if isAuthenticated() && isNotBanned();
+      allow update: if isAuthenticated() && 
+        request.auth.uid in resource.data.participants;
+      allow delete: if false; // No deletion
+      
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && 
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        allow create: if isAuthenticated() && isNotBanned() &&
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        allow update: if isAuthenticated() && 
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        allow delete: if false;
+      }
+    }
+    
+    // Favorites collection
+    match /favorites/{favoriteId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+    
+    // Reports collection
+    match /reports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated() && isNotBanned();
+      allow delete: if isAdmin();
+    }
+    
+    // Comments collection
+    match /comments/{commentId} {
+      allow read: if true; // Public read (filtering done in app)
+      allow create: if isAuthenticated() && isNotBanned();
+      allow update: if isOwner(resource.data.userId) || isAdmin();
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+    
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated(); // System can create for any user
+      allow update: if isAuthenticated() && isOwner(resource.data.userId);
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+    
+    // Post mutes collection
+    match /postMutes/{muteId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // Banners collection
+    match /banners/{bannerId} {
+      allow read: if true; // Public read
+      allow write: if isAdmin();
+    }
+
+    // Home sections collection
+    match /homeSections/{sectionId} {
+      allow read: if true; // Public read
+      allow write: if isAdmin();
+    }
+
+    // Quick filters collection
+    match /quickFilters/{filterId} {
+      allow read: if true; // Public read
+      allow write: if isAdmin();
+    }
+  }
+}
