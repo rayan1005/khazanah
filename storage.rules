@@ -18,16 +18,45 @@ service firebase.storage {
       return request.resource.size < 5 * 1024 * 1024;
     }
     
+    function isAdmin() {
+      return isAuthenticated() && 
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
     // Post images
     match /posts/{postId}/{allPaths=**} {
-      allow read: if true; // Public read
+      allow read: if true;
       allow write: if isAuthenticated() && isImage() && isUnder5MB();
     }
     
     // User avatars
     match /users/{userId}/{allPaths=**} {
-      allow read: if true; // Public read
+      allow read: if true;
       allow write: if isOwner(userId) && isImage() && isUnder5MB();
+    }
+    
+    // Brand images (admin only)
+    match /brands/{brandId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && isUnder5MB();
+    }
+    
+    // Banner images (admin only)
+    match /banners/{bannerId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && isUnder5MB();
+    }
+    
+    // Section images (admin only)
+    match /sections/{sectionId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && isUnder5MB();
+    }
+    
+    // Category images (admin only)
+    match /categories/{categoryId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && isUnder5MB();
     }
   }
 }
