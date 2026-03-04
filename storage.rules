@@ -57,7 +57,7 @@ service firebase.storage {
     // Boutique images (logo, cover, certificates)
     match /boutiques/{userId}/{allPaths=**} {
       allow read: if true;
-      allow write: if isOwner(userId) && isImage() && isUnder5MB();
+      allow write: if isAuthenticated() && isUnder5MB();
     }
   }
 }
