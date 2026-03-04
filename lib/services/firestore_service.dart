@@ -10,6 +10,7 @@ import '../models/notification_model.dart';
 import '../models/banner_model.dart';
 import '../models/home_section_model.dart';
 import '../models/quick_filter_model.dart';
+import '../models/boutique_request_model.dart';
 import '../core/constants/firestore_paths.dart';
 
 class FirestoreService {
@@ -841,5 +842,112 @@ class FirestoreService {
       );
     }
     await batch.commit();
+  }
+
+  // ==================== BOUTIQUE REQUESTS ====================
+
+  /// Submit a boutique upgrade request
+  Future<String> submitBoutiqueRequest(BoutiqueRequestModel request) async {
+    final docRef = await _db
+        .collection(FirestorePaths.boutiqueRequests)
+        .add(request.toMap());
+    return docRef.id;
+  }
+
+  /// Get user's boutique request
+  Stream<BoutiqueRequestModel?> userBoutiqueRequestStream(String userId) {
+    return _db
+        .collection(FirestorePaths.boutiqueRequests)
+        .where('userId', isEqualTo: userId)
+        .orderBy('createdAt', descending: true)
+        .limit(1)
+        .snapshots()
+        .map((snap) => snap.docs.isNotEmpty
+            ? BoutiqueRequestModel.fromDoc(snap.docs.first)
+            : null);
+  }
+
+  /// Get all pending boutique requests (admin)
+  Stream<List<BoutiqueRequestModel>> pendingBoutiqueRequestsStream() {
+    return _db
+        .collection(FirestorePaths.boutiqueRequests)
+        .where('status', isEqualTo: 'pending')
+        .orderBy('createdAt', descending: false)
+        .snapshots()
+        .map((snap) =>
+            snap.docs.map((d) => BoutiqueRequestModel.fromDoc(d)).toList());
+  }
+
+  /// Get all boutique requests (admin)
+  Stream<List<BoutiqueRequestModel>> allBoutiqueRequestsStream() {
+    return _db
+        .collection(FirestorePaths.boutiqueRequests)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snap) =>
+            snap.docs.map((d) => BoutiqueRequestModel.fromDoc(d)).toList());
+  }
+
+  /// Approve boutique request
+  Future<void> approveBoutiqueRequest(BoutiqueRequestModel request) async {
+    final batch = _db.batch();
+
+    // Update request status
+    batch.update(
+      _db.collection(FirestorePaths.boutiqueRequests).doc(request.id),
+      {
+        'status': 'approved',
+        'reviewedAt': FieldValue.serverTimestamp(),
+      },
+    );
+
+    // Update user to boutique
+    batch.update(
+      _db.collection(FirestorePaths.users).doc(request.userId),
+      {
+        'accountType': 'boutique',
+        'boutiqueName': request.boutiqueName,
+        'boutiqueDescription': request.description,
+        'instagramUrl': request.instagramUrl,
+        'tiktokUrl': request.tiktokUrl,
+        'maaroofUrl': request.maaroofUrl,
+      },
+    );
+
+    await batch.commit();
+  }
+
+  /// Reject boutique request
+  Future<void> rejectBoutiqueRequest(String requestId, String reason) async {
+    await _db
+        .collection(FirestorePaths.boutiqueRequests)
+        .doc(requestId)
+        .update({
+      'status': 'rejected',
+      'rejectionReason': reason,
+      'reviewedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Get all boutique users (for boutiques tab)
+  Stream<List<UserModel>> boutiquesStream() {
+    return _db
+        .collection(FirestorePaths.users)
+        .where('accountType', isEqualTo: 'boutique')
+        .snapshots()
+        .map((snap) =>
+            snap.docs.map((d) => UserModel.fromDoc(d)).toList());
+  }
+
+  /// Get posts by a specific user (for boutique store page)
+  Future<List<PostModel>> getBoutiqueActivePosts(String userId, {int limit = 50}) async {
+    final snap = await _db
+        .collection(FirestorePaths.posts)
+        .where('userId', isEqualTo: userId)
+        .where('status', isEqualTo: PostStatus.active.name)
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .get();
+    return snap.docs.map((d) => PostModel.fromDoc(d)).toList();
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../core/constants/app_colors.dart';
 import '../core/constants/app_strings.dart';
 
 class MainShell extends StatelessWidget {
@@ -10,7 +9,7 @@ class MainShell extends StatelessWidget {
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     if (location == '/home') return 0;
-    if (location == '/my-posts') return 1;
+    if (location == '/boutiques') return 1;
     if (location == '/chats') return 3;
     if (location == '/profile') return 4;
     return 0;
@@ -21,7 +20,7 @@ class MainShell extends StatelessWidget {
       case 0:
         context.go('/home');
       case 1:
-        context.go('/my-posts');
+        context.go('/boutiques');
       case 2:
         context.push('/add-post');
       case 3:
@@ -50,8 +49,8 @@ class MainShell extends StatelessWidget {
             label: AppStrings.home,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.article_rounded),
-            label: AppStrings.myPosts,
+            icon: Icon(Icons.storefront_rounded),
+            label: AppStrings.boutiques,
           ),
           BottomNavigationBarItem(
             icon: SizedBox.shrink(), // Placeholder for FAB

@@ -8,12 +8,14 @@ class PostCard extends StatelessWidget {
   final PostModel post;
   final bool isFavorited;
   final VoidCallback? onFavorite;
+  final bool showBoutiqueBadge;
 
   const PostCard({
     super.key,
     required this.post,
     this.isFavorited = false,
     this.onFavorite,
+    this.showBoutiqueBadge = false,
   });
 
   @override
@@ -117,6 +119,34 @@ class PostCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // Boutique badge
+                  if (showBoutiqueBadge)
+                    Positioned(
+                      bottom: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.info,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.verified, size: 10, color: Colors.white),
+                            SizedBox(width: 2),
+                            Text(
+                              'بوتيك',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

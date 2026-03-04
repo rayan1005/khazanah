@@ -6,7 +6,8 @@ enum SizeType {
   shoes,    // EU 30-50
   abayas,   // 52-62
   kids,     // Age-based: 0-3m, 3-6m, 6-12m, 1-2y, 2-3y, etc.
-  none,     // No size (bags, accessories)
+  bags,     // صغير, وسط, كبير
+  none,     // No size (accessories)
 }
 
 class CategoryModel {
@@ -73,6 +74,8 @@ class CategoryModel {
         return SizeType.abayas;
       case 'kids':
         return SizeType.kids;
+      case 'bags':
+        return SizeType.bags;
       case 'none':
         return SizeType.none;
       default:

@@ -136,4 +136,61 @@ class StorageService {
       // Ignore if folder doesn't exist
     }
   }
+
+  /// Upload boutique logo
+  Future<String> uploadBoutiqueLogo(String uid, XFile file) async {
+    final bytes = await file.readAsBytes();
+    final compressed = await ImageUtils.compressImage(bytes);
+    final data = compressed ?? bytes;
+
+    final ref = _storage
+        .ref()
+        .child(FirestorePaths.boutiqueLogo(uid))
+        .child('logo.jpg');
+
+    final uploadTask = await ref.putData(
+      data,
+      SettableMetadata(contentType: 'image/jpeg'),
+    );
+
+    return await uploadTask.ref.getDownloadURL();
+  }
+
+  /// Upload boutique cover image
+  Future<String> uploadBoutiqueCover(String uid, XFile file) async {
+    final bytes = await file.readAsBytes();
+    final compressed = await ImageUtils.compressImage(bytes);
+    final data = compressed ?? bytes;
+
+    final ref = _storage
+        .ref()
+        .child(FirestorePaths.boutiqueCover(uid))
+        .child('cover.jpg');
+
+    final uploadTask = await ref.putData(
+      data,
+      SettableMetadata(contentType: 'image/jpeg'),
+    );
+
+    return await uploadTask.ref.getDownloadURL();
+  }
+
+  /// Upload Ma'roof certificate image
+  Future<String> uploadMaaroofCertificate(String uid, XFile file) async {
+    final bytes = await file.readAsBytes();
+    final compressed = await ImageUtils.compressImage(bytes);
+    final data = compressed ?? bytes;
+
+    final ref = _storage
+        .ref()
+        .child(FirestorePaths.maaroofCertificate(uid))
+        .child('certificate.jpg');
+
+    final uploadTask = await ref.putData(
+      data,
+      SettableMetadata(contentType: 'image/jpeg'),
+    );
+
+    return await uploadTask.ref.getDownloadURL();
+  }
 }

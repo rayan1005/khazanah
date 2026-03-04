@@ -10,6 +10,15 @@ class UserModel {
   final String role; // 'user' or 'admin'
   final bool isBanned;
   final DateTime createdAt;
+  // Boutique fields
+  final String accountType; // 'user' or 'boutique'
+  final String? boutiqueName;
+  final String? boutiqueLogo;
+  final String? boutiqueCover;
+  final String? boutiqueDescription;
+  final String? instagramUrl;
+  final String? tiktokUrl;
+  final String? maaroofUrl;
 
   const UserModel({
     required this.uid,
@@ -21,9 +30,18 @@ class UserModel {
     this.role = 'user',
     this.isBanned = false,
     required this.createdAt,
+    this.accountType = 'user',
+    this.boutiqueName,
+    this.boutiqueLogo,
+    this.boutiqueCover,
+    this.boutiqueDescription,
+    this.instagramUrl,
+    this.tiktokUrl,
+    this.maaroofUrl,
   });
 
   bool get isAdmin => role == 'admin';
+  bool get isBoutique => accountType == 'boutique';
 
   UserModel copyWith({
     String? uid,
@@ -35,6 +53,14 @@ class UserModel {
     String? role,
     bool? isBanned,
     DateTime? createdAt,
+    String? accountType,
+    String? boutiqueName,
+    String? boutiqueLogo,
+    String? boutiqueCover,
+    String? boutiqueDescription,
+    String? instagramUrl,
+    String? tiktokUrl,
+    String? maaroofUrl,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -46,6 +72,14 @@ class UserModel {
       role: role ?? this.role,
       isBanned: isBanned ?? this.isBanned,
       createdAt: createdAt ?? this.createdAt,
+      accountType: accountType ?? this.accountType,
+      boutiqueName: boutiqueName ?? this.boutiqueName,
+      boutiqueLogo: boutiqueLogo ?? this.boutiqueLogo,
+      boutiqueCover: boutiqueCover ?? this.boutiqueCover,
+      boutiqueDescription: boutiqueDescription ?? this.boutiqueDescription,
+      instagramUrl: instagramUrl ?? this.instagramUrl,
+      tiktokUrl: tiktokUrl ?? this.tiktokUrl,
+      maaroofUrl: maaroofUrl ?? this.maaroofUrl,
     );
   }
 
@@ -60,6 +94,14 @@ class UserModel {
       'role': role,
       'isBanned': isBanned,
       'createdAt': Timestamp.fromDate(createdAt),
+      'accountType': accountType,
+      'boutiqueName': boutiqueName,
+      'boutiqueLogo': boutiqueLogo,
+      'boutiqueCover': boutiqueCover,
+      'boutiqueDescription': boutiqueDescription,
+      'instagramUrl': instagramUrl,
+      'tiktokUrl': tiktokUrl,
+      'maaroofUrl': maaroofUrl,
     };
   }
 
@@ -74,6 +116,14 @@ class UserModel {
       role: map['role'] ?? 'user',
       isBanned: map['isBanned'] ?? false,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      accountType: map['accountType'] ?? 'user',
+      boutiqueName: map['boutiqueName'],
+      boutiqueLogo: map['boutiqueLogo'],
+      boutiqueCover: map['boutiqueCover'],
+      boutiqueDescription: map['boutiqueDescription'],
+      instagramUrl: map['instagramUrl'],
+      tiktokUrl: map['tiktokUrl'],
+      maaroofUrl: map['maaroofUrl'],
     );
   }
 

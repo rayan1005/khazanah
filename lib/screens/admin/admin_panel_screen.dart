@@ -106,6 +106,12 @@ class AdminPanelScreen extends ConsumerWidget {
             subtitle: 'إدارة المستخدمين وحظرهم',
             onTap: () => context.push('/admin/users'),
           ),
+          _AdminTile(
+            icon: Icons.storefront,
+            title: AppStrings.manageBoutiqueRequests,
+            subtitle: 'مراجعة طلبات الترقية لبوتيك',
+            onTap: () => context.push('/admin/boutique-requests'),
+          ),
         ],
       ),
     );

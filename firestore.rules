@@ -124,5 +124,15 @@ service cloud.firestore {
       allow read: if true; // Public read
       allow write: if isAdmin();
     }
+
+    // Boutique requests collection
+    match /boutiqueRequests/{requestId} {
+      allow read: if isAuthenticated() && 
+        (isOwner(resource.data.userId) || isAdmin());
+      allow create: if isAuthenticated() && isNotBanned() &&
+        isOwner(request.resource.data.userId);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
   }
 }

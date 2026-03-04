@@ -26,6 +26,13 @@ class Sizes {
     '52', '54', '56', '58', '60', '62',
   ];
 
+  /// Bag sizes
+  static const List<String> bags = [
+    'صغير',
+    'وسط',
+    'كبير',
+  ];
+
   /// Kids sizes (age-based)
   static const List<String> kids = [
     '0-3 شهور',
@@ -57,6 +64,8 @@ class Sizes {
         return abayas;
       case SizeType.kids:
         return kids;
+      case SizeType.bags:
+        return bags;
       case SizeType.none:
         return [];
     }
@@ -72,6 +81,7 @@ class Sizes {
       case 'kids':
         return kids;
       case 'bags':
+        return bags;
       case 'accessories':
         return [];
       default:

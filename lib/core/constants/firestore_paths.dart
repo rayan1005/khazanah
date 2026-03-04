@@ -15,6 +15,7 @@ class FirestorePaths {
   static const String banners = 'banners';
   static const String homeSections = 'homeSections';
   static const String quickFilters = 'quickFilters';
+  static const String boutiqueRequests = 'boutiqueRequests';
 
   // Sub-collections
   static String chatMessages(String chatId) => 'chats/$chatId/messages';
@@ -25,4 +26,7 @@ class FirestorePaths {
   static String brandImage(String brandId) => 'brands/$brandId';
   static String bannerImage(String bannerId) => 'banners/$bannerId';
   static String sectionItemImage(String sectionId, int index) => 'sections/$sectionId/item_$index';
+  static String boutiqueLogo(String uid) => 'boutiques/$uid/logo';
+  static String boutiqueCover(String uid) => 'boutiques/$uid/cover';
+  static String maaroofCertificate(String uid) => 'boutiques/$uid/maaroof';
 }

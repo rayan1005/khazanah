@@ -16,7 +16,10 @@ import '../../screens/profile/other_user_profile_screen.dart';
 import '../../screens/profile/favorites_screen.dart';
 import '../../screens/profile/settings_screen.dart';
 import '../../screens/profile/edit_profile_screen.dart';
+import '../../screens/profile/upgrade_to_boutique_screen.dart';
 import '../../screens/post_detail/post_detail_screen.dart';
+import '../../screens/boutiques/boutiques_screen.dart';
+import '../../screens/boutiques/boutique_store_screen.dart';
 import '../../screens/admin/admin_panel_screen.dart';
 import '../../screens/admin/manage_categories_screen.dart';
 import '../../screens/admin/manage_brands_screen.dart';
@@ -24,6 +27,7 @@ import '../../screens/admin/manage_reports_screen.dart';
 import '../../screens/admin/manage_users_screen.dart';
 import '../../screens/admin/manage_banners_screen.dart';
 import '../../screens/admin/manage_home_sections_screen.dart';
+import '../../screens/admin/manage_boutique_requests_screen.dart';
 import '../../screens/notifications/notifications_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -82,6 +86,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/my-posts',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: MyPostsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/boutiques',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: BoutiquesScreen(),
             ),
           ),
           GoRoute(
@@ -152,6 +162,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const EditProfileScreen(),
       ),
+      GoRoute(
+        path: '/upgrade-to-boutique',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const UpgradeToBoutiqueScreen(),
+      ),
+      GoRoute(
+        path: '/boutique/:userId',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final userId = state.pathParameters['userId']!;
+          return BoutiqueStoreScreen(userId: userId);
+        },
+      ),
 
       // Admin routes
       GoRoute(
@@ -188,6 +211,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/admin/home-sections',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ManageHomeSectionsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/boutique-requests',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ManageBoutiqueRequestsScreen(),
       ),
     ],
   );

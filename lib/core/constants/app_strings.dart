@@ -10,6 +10,7 @@ class AppStrings {
   static const String myPosts = 'إعلاناتي';
   static const String chats = 'المحادثات';
   static const String profile = 'حسابي';
+  static const String boutiques = 'بوتيكات';
 
   // Auth
   static const String login = 'تسجيل الدخول';
@@ -182,4 +183,23 @@ class AppStrings {
   static const String fullName = 'الاسم';
   static const String cityLabel = 'المدينة';
   static const String whatsappOptional = 'واتساب (اختياري)';
+
+  // Boutique
+  static const String upgradeToBoutique = 'ترقية لبوتيك';
+  static const String boutiqueRequest = 'طلب ترقية لبوتيك';
+  static const String boutiqueName = 'اسم البوتيك';
+  static const String boutiqueDescription = 'وصف البوتيك';
+  static const String instagramAccount = 'حساب انستقرام';
+  static const String tiktokAccount = 'حساب تيكتوك (اختياري)';
+  static const String maaroofCertificate = 'شهادة معروف';
+  static const String maaroofUrl = 'رابط متجر معروف';
+  static const String uploadMaaroofCertificate = 'تحميل شهادة معروف';
+  static const String submitRequest = 'إرسال الطلب';
+  static const String requestPending = 'طلبك قيد المراجعة';
+  static const String requestApproved = 'تم قبول طلبك';
+  static const String requestRejected = 'تم رفض طلبك';
+  static const String manageBoutiqueRequests = 'طلبات البوتيك';
+  static const String noBoutiques = 'لا توجد بوتيكات حالياً';
+  static const String visitStore = 'زيارة المتجر';
+  static const String boutiqueVerified = 'بوتيك معتمد';
 }

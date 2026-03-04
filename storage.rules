@@ -18,11 +18,6 @@ service firebase.storage {
       return request.resource.size < 5 * 1024 * 1024;
     }
     
-    function isAdmin() {
-      return isAuthenticated() && 
-        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-    
     // Post images
     match /posts/{postId}/{allPaths=**} {
       allow read: if true;
@@ -35,28 +30,34 @@ service firebase.storage {
       allow write: if isOwner(userId) && isImage() && isUnder5MB();
     }
     
-    // Brand images (admin only)
+    // Brand images (admin checked in app)
     match /brands/{brandId}/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin() && isImage() && isUnder5MB();
+      allow write: if isAuthenticated() && isImage() && isUnder5MB();
     }
     
-    // Banner images (admin only)
+    // Banner images (admin checked in app)
     match /banners/{bannerId}/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin() && isImage() && isUnder5MB();
+      allow write: if isAuthenticated() && isImage() && isUnder5MB();
     }
     
-    // Section images (admin only)
+    // Section images (admin checked in app)
     match /sections/{sectionId}/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin() && isImage() && isUnder5MB();
+      allow write: if isAuthenticated() && isImage() && isUnder5MB();
     }
     
-    // Category images (admin only)
+    // Category images (admin checked in app)
     match /categories/{categoryId}/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin() && isImage() && isUnder5MB();
+      allow write: if isAuthenticated() && isImage() && isUnder5MB();
+    }
+    
+    // Boutique images (logo, cover, certificates)
+    match /boutiques/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isOwner(userId) && isImage() && isUnder5MB();
     }
   }
 }

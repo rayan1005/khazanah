@@ -117,6 +117,27 @@ class ProfileScreen extends ConsumerWidget {
                   onTap: () => context.push('/admin'),
                 ),
 
+              // My Posts (moved from bottom nav)
+              _ProfileTile(
+                icon: Icons.article_rounded,
+                title: AppStrings.myPosts,
+                onTap: () => context.push('/my-posts'),
+              ),
+
+              // Boutique upgrade or my store
+              if (user.isBoutique)
+                _ProfileTile(
+                  icon: Icons.storefront,
+                  title: 'متجري',
+                  onTap: () => context.push('/boutique/${user.uid}'),
+                )
+              else
+                _ProfileTile(
+                  icon: Icons.storefront_outlined,
+                  title: AppStrings.upgradeToBoutique,
+                  onTap: () => context.push('/upgrade-to-boutique'),
+                ),
+
               // Favorites
               _ProfileTile(
                 icon: Icons.favorite_outline,
