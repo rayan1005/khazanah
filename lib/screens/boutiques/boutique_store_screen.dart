@@ -5,8 +5,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/boutique_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../services/firestore_service.dart';
 import '../../widgets/post_card.dart';
 
 class BoutiqueStoreScreen extends ConsumerWidget {
@@ -17,6 +19,9 @@ class BoutiqueStoreScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userAsync = ref.watch(userStreamByIdProvider(userId));
     final postsAsync = ref.watch(boutiquePostsProvider(userId));
+    final currentUser = ref.watch(currentUserStreamProvider).valueOrNull;
+    final isOwner = currentUser?.uid == userId;
+    final isAdmin = currentUser?.role == 'admin';
 
     return Scaffold(
       body: userAsync.when(
@@ -42,6 +47,43 @@ class BoutiqueStoreScreen extends ConsumerWidget {
                   ),
                   onPressed: () => context.pop(),
                 ),
+                actions: [
+                  if (isOwner)
+                    IconButton(
+                      icon: const CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.edit, size: 16, color: Colors.black),
+                      ),
+                      onPressed: () => context.push('/edit-boutique'),
+                    ),
+                  if (!isOwner)
+                    PopupMenuButton<String>(
+                      icon: const CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.more_vert,
+                            size: 16, color: Colors.black),
+                      ),
+                      onSelected: (value) {
+                        if (value == 'report') {
+                          _showReportDialog(context, ref, user.uid);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        const PopupMenuItem(
+                          value: 'report',
+                          child: Row(
+                            children: [
+                              Icon(Icons.flag, size: 18, color: AppColors.error),
+                              SizedBox(width: 8),
+                              Text(AppStrings.reportBoutique),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: Stack(
                     fit: StackFit.expand,
@@ -78,6 +120,33 @@ class BoutiqueStoreScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+
+              // Suspended banner
+              if (!user.boutiqueActive)
+                SliverToBoxAdapter(
+                  child: Container(
+                    color: AppColors.error.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.warning_amber,
+                            size: 18, color: AppColors.error),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            AppStrings.boutiqueSuspended,
+                            style: TextStyle(
+                              color: AppColors.error,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
               // Boutique info section
               SliverToBoxAdapter(
@@ -160,18 +229,20 @@ class BoutiqueStoreScreen extends ConsumerWidget {
                             ),
                           ),
                         ),
-                      // Social links
+                      // Social links (respect visibility flags)
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          if (user.instagramUrl != null)
+                          if (user.instagramUrl != null &&
+                              (user.showInstagram || isOwner || isAdmin))
                             _SocialButton(
                               icon: Icons.camera_alt,
                               label: 'انستقرام',
                               color: const Color(0xFFE1306C),
                               onTap: () => _launchUrl(user.instagramUrl!),
                             ),
-                          if (user.tiktokUrl != null) ...[
+                          if (user.tiktokUrl != null &&
+                              (user.showTiktok || isOwner || isAdmin)) ...[
                             const SizedBox(width: 8),
                             _SocialButton(
                               icon: Icons.music_note,
@@ -180,7 +251,8 @@ class BoutiqueStoreScreen extends ConsumerWidget {
                               onTap: () => _launchUrl(user.tiktokUrl!),
                             ),
                           ],
-                          if (user.maaroofUrl != null) ...[
+                          if (user.maaroofUrl != null &&
+                              (user.showMaaroof || isOwner || isAdmin)) ...[
                             const SizedBox(width: 8),
                             _SocialButton(
                               icon: Icons.verified_user,
@@ -259,6 +331,59 @@ class BoutiqueStoreScreen extends ConsumerWidget {
             ],
           );
         },
+      ),
+    );
+  }
+
+  void _showReportDialog(BuildContext context, WidgetRef ref, String boutiqueUserId) {
+    final reasonController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text(AppStrings.reportBoutique),
+        content: TextField(
+          controller: reasonController,
+          maxLines: 3,
+          decoration: InputDecoration(
+            hintText: 'اكتب سبب البلاغ...',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final reason = reasonController.text.trim();
+              if (reason.isEmpty) return;
+              final currentUser =
+                  ref.read(currentUserStreamProvider).valueOrNull;
+              if (currentUser == null) return;
+
+              await FirestoreService().reportBoutique(
+                boutiqueUserId: boutiqueUserId,
+                reporterId: currentUser.uid,
+                reason: reason,
+              );
+
+              Navigator.pop(ctx);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(AppStrings.boutiqueReportSubmitted),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+              }
+            },
+            child: const Text('إرسال',
+                style: TextStyle(color: AppColors.error)),
+          ),
+        ],
       ),
     );
   }

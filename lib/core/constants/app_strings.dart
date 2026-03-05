@@ -202,4 +202,11 @@ class AppStrings {
   static const String noBoutiques = 'لا توجد بوتيكات حالياً';
   static const String visitStore = 'زيارة المتجر';
   static const String boutiqueVerified = 'بوتيك معتمد';
+  static const String manageBoutiques = 'إدارة البوتيكات';
+  static const String editBoutique = 'تعديل البوتيك';
+  static const String suspendBoutique = 'إيقاف البوتيك';
+  static const String activateBoutique = 'تفعيل البوتيك';
+  static const String reportBoutique = 'إبلاغ عن البوتيك';
+  static const String boutiqueReportSubmitted = 'تم إرسال البلاغ عن البوتيك';
+  static const String boutiqueSuspended = 'هذا البوتيك موقوف حالياً';
 }

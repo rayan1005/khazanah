@@ -112,6 +112,12 @@ class AdminPanelScreen extends ConsumerWidget {
             subtitle: 'مراجعة طلبات الترقية لبوتيك',
             onTap: () => context.push('/admin/boutique-requests'),
           ),
+          _AdminTile(
+            icon: Icons.store,
+            title: AppStrings.manageBoutiques,
+            subtitle: 'إدارة البوتيكات وإيقافها وإظهار الروابط',
+            onTap: () => context.push('/admin/boutiques'),
+          ),
         ],
       ),
     );

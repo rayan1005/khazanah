@@ -19,6 +19,10 @@ class UserModel {
   final String? instagramUrl;
   final String? tiktokUrl;
   final String? maaroofUrl;
+  final bool boutiqueActive; // admin can suspend
+  final bool showInstagram; // admin controls visibility
+  final bool showTiktok;
+  final bool showMaaroof;
 
   const UserModel({
     required this.uid,
@@ -38,6 +42,10 @@ class UserModel {
     this.instagramUrl,
     this.tiktokUrl,
     this.maaroofUrl,
+    this.boutiqueActive = true,
+    this.showInstagram = true,
+    this.showTiktok = true,
+    this.showMaaroof = true,
   });
 
   bool get isAdmin => role == 'admin';
@@ -61,6 +69,10 @@ class UserModel {
     String? instagramUrl,
     String? tiktokUrl,
     String? maaroofUrl,
+    bool? boutiqueActive,
+    bool? showInstagram,
+    bool? showTiktok,
+    bool? showMaaroof,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -80,6 +92,10 @@ class UserModel {
       instagramUrl: instagramUrl ?? this.instagramUrl,
       tiktokUrl: tiktokUrl ?? this.tiktokUrl,
       maaroofUrl: maaroofUrl ?? this.maaroofUrl,
+      boutiqueActive: boutiqueActive ?? this.boutiqueActive,
+      showInstagram: showInstagram ?? this.showInstagram,
+      showTiktok: showTiktok ?? this.showTiktok,
+      showMaaroof: showMaaroof ?? this.showMaaroof,
     );
   }
 
@@ -102,6 +118,10 @@ class UserModel {
       'instagramUrl': instagramUrl,
       'tiktokUrl': tiktokUrl,
       'maaroofUrl': maaroofUrl,
+      'boutiqueActive': boutiqueActive,
+      'showInstagram': showInstagram,
+      'showTiktok': showTiktok,
+      'showMaaroof': showMaaroof,
     };
   }
 
@@ -124,6 +144,10 @@ class UserModel {
       instagramUrl: map['instagramUrl'],
       tiktokUrl: map['tiktokUrl'],
       maaroofUrl: map['maaroofUrl'],
+      boutiqueActive: map['boutiqueActive'] ?? true,
+      showInstagram: map['showInstagram'] ?? true,
+      showTiktok: map['showTiktok'] ?? true,
+      showMaaroof: map['showMaaroof'] ?? true,
     );
   }
 

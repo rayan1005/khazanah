@@ -134,5 +134,12 @@ service cloud.firestore {
       allow update: if isAdmin();
       allow delete: if isAdmin();
     }
+
+    // Boutique reports collection
+    match /boutiqueReports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated() && isNotBanned();
+      allow delete: if isAdmin();
+    }
   }
 }

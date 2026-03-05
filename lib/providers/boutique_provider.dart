@@ -4,10 +4,16 @@ import '../models/user_model.dart';
 import '../models/post_model.dart';
 import 'user_provider.dart';
 
-/// Stream of all boutique users
+/// Stream of all boutique users (active only - for public tab)
 final boutiquesStreamProvider = StreamProvider<List<UserModel>>((ref) {
   final service = ref.read(firestoreServiceProvider);
   return service.boutiquesStream();
+});
+
+/// Stream of all boutique users including suspended (admin)
+final allBoutiquesStreamProvider = StreamProvider<List<UserModel>>((ref) {
+  final service = ref.read(firestoreServiceProvider);
+  return service.allBoutiquesStream();
 });
 
 /// Stream of user's boutique request

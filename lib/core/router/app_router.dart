@@ -28,6 +28,8 @@ import '../../screens/admin/manage_users_screen.dart';
 import '../../screens/admin/manage_banners_screen.dart';
 import '../../screens/admin/manage_home_sections_screen.dart';
 import '../../screens/admin/manage_boutique_requests_screen.dart';
+import '../../screens/admin/manage_boutiques_screen.dart';
+import '../../screens/boutiques/edit_boutique_screen.dart';
 import '../../screens/notifications/notifications_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -168,6 +170,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const UpgradeToBoutiqueScreen(),
       ),
       GoRoute(
+        path: '/edit-boutique',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const EditBoutiqueScreen(),
+      ),
+      GoRoute(
         path: '/boutique/:userId',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
@@ -216,6 +223,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/admin/boutique-requests',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ManageBoutiqueRequestsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/boutiques',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ManageBoutiquesScreen(),
       ),
     ],
   );

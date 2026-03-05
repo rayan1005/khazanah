@@ -929,8 +929,19 @@ class FirestoreService {
     });
   }
 
-  /// Get all boutique users (for boutiques tab)
+  /// Get all boutique users (for boutiques tab - only active)
   Stream<List<UserModel>> boutiquesStream() {
+    return _db
+        .collection(FirestorePaths.users)
+        .where('accountType', isEqualTo: 'boutique')
+        .where('boutiqueActive', isEqualTo: true)
+        .snapshots()
+        .map((snap) =>
+            snap.docs.map((d) => UserModel.fromDoc(d)).toList());
+  }
+
+  /// Get all boutique users including suspended (admin)
+  Stream<List<UserModel>> allBoutiquesStream() {
     return _db
         .collection(FirestorePaths.users)
         .where('accountType', isEqualTo: 'boutique')
@@ -949,5 +960,69 @@ class FirestoreService {
         .limit(limit)
         .get();
     return snap.docs.map((d) => PostModel.fromDoc(d)).toList();
+  }
+
+  /// Update boutique profile (for owner edit)
+  Future<void> updateBoutiqueProfile(String uid, Map<String, dynamic> data) async {
+    await _db.collection(FirestorePaths.users).doc(uid).update(data);
+  }
+
+  /// Suspend boutique (admin)
+  Future<void> suspendBoutique(String uid) async {
+    await _db.collection(FirestorePaths.users).doc(uid).update({
+      'boutiqueActive': false,
+    });
+  }
+
+  /// Activate boutique (admin)
+  Future<void> activateBoutique(String uid) async {
+    await _db.collection(FirestorePaths.users).doc(uid).update({
+      'boutiqueActive': true,
+    });
+  }
+
+  /// Revoke boutique status (admin - downgrade to user)
+  Future<void> revokeBoutique(String uid) async {
+    await _db.collection(FirestorePaths.users).doc(uid).update({
+      'accountType': 'user',
+      'boutiqueActive': false,
+    });
+  }
+
+  /// Toggle boutique link visibility (admin)
+  Future<void> toggleBoutiqueVisibility(String uid, String field, bool value) async {
+    await _db.collection(FirestorePaths.users).doc(uid).update({
+      field: value,
+    });
+  }
+
+  /// Report a boutique
+  Future<void> reportBoutique({
+    required String boutiqueUserId,
+    required String reporterId,
+    required String reason,
+  }) async {
+    await _db.collection('boutiqueReports').add({
+      'boutiqueUserId': boutiqueUserId,
+      'reporterId': reporterId,
+      'reason': reason,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Get boutique reports stream (admin)
+  Stream<List<Map<String, dynamic>>> boutiqueReportsStream() {
+    return _db
+        .collection('boutiqueReports')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((d) => {'id': d.id, ...d.data()})
+            .toList());
+  }
+
+  /// Delete boutique report
+  Future<void> deleteBoutiqueReport(String id) async {
+    await _db.collection('boutiqueReports').doc(id).delete();
   }
 }
