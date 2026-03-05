@@ -66,6 +66,19 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     }
   }
 
+  void _showFullScreenImage(BuildContext context, List<String> photos, int initialIndex) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black,
+        pageBuilder: (_, __, ___) => _FullScreenImageViewer(
+          photos: photos,
+          initialIndex: initialIndex,
+        ),
+      ),
+    );
+  }
+
   void _reportPost() async {
     final reason = await showDialog<String>(
       context: context,
@@ -207,12 +220,16 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                               itemCount: post.photos.length,
                               onPageChanged: (i) =>
                                   setState(() => _currentPhoto = i),
-                              itemBuilder: (_, i) => Container(
-                                color: Colors.black,
-                                child: CachedNetworkImage(
-                                  imageUrl: post.photos[i],
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
+                              itemBuilder: (_, i) => GestureDetector(
+                                onTap: () => _showFullScreenImage(context, post.photos, i),
+                                child: Container(
+                                  color: Colors.white,
+                                  child: CachedNetworkImage(
+                                    imageUrl: post.photos[i],
+                                    fit: BoxFit.contain,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                  ),
                                 ),
                               ),
                             ),
@@ -1177,6 +1194,129 @@ class _SimilarPostsSection extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Full-screen zoomable image viewer
+class _FullScreenImageViewer extends StatefulWidget {
+  final List<String> photos;
+  final int initialIndex;
+
+  const _FullScreenImageViewer({
+    required this.photos,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_FullScreenImageViewer> createState() => _FullScreenImageViewerState();
+}
+
+class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
+  late PageController _controller;
+  late int _current;
+
+  @override
+  void initState() {
+    super.initState();
+    _current = widget.initialIndex;
+    _controller = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Zoomable images
+          PageView.builder(
+            controller: _controller,
+            itemCount: widget.photos.length,
+            onPageChanged: (i) => setState(() => _current = i),
+            itemBuilder: (_, i) => InteractiveViewer(
+              minScale: 1.0,
+              maxScale: 4.0,
+              child: Center(
+                child: CachedNetworkImage(
+                  imageUrl: widget.photos[i],
+                  fit: BoxFit.contain,
+                  width: double.infinity,
+                ),
+              ),
+            ),
+          ),
+
+          // Close button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: 12,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: const CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.white24,
+                child: Icon(Icons.close, color: Colors.white, size: 20),
+              ),
+            ),
+          ),
+
+          // Page indicator
+          if (widget.photos.length > 1)
+            Positioned(
+              bottom: MediaQuery.of(context).padding.bottom + 24,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  widget.photos.length,
+                  (i) => Container(
+                    width: i == _current ? 20 : 8,
+                    height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    decoration: BoxDecoration(
+                      color: i == _current ? Colors.white : Colors.white38,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Counter
+          if (widget.photos.length > 1)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 14,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black45,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${_current + 1} / ${widget.photos.length}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
