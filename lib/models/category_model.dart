@@ -56,31 +56,56 @@ class CategoryModel {
   }
 
   factory CategoryModel.fromMap(String id, Map<String, dynamic> map) {
+    final name = map['name'] ?? '';
     return CategoryModel(
       id: id,
-      name: map['name'] ?? '',
+      name: name,
       icon: map['icon'] ?? '',
       imageUrl: map['imageUrl'],
-      sizeType: _parseSizeType(map['sizeType']),
+      sizeType: _parseSizeType(map['sizeType'], name),
       order: map['order'] ?? 0,
     );
   }
 
-  static SizeType _parseSizeType(String? value) {
-    switch (value) {
-      case 'shoes':
-        return SizeType.shoes;
-      case 'abayas':
-        return SizeType.abayas;
-      case 'kids':
-        return SizeType.kids;
-      case 'bags':
-        return SizeType.bags;
-      case 'none':
-        return SizeType.none;
-      default:
-        return SizeType.clothes;
+  /// Parse sizeType from Firestore value, with name-based fallback
+  /// for categories created before sizeType field was added
+  static SizeType _parseSizeType(String? value, String categoryName) {
+    // If explicit value exists, use it
+    if (value != null) {
+      switch (value) {
+        case 'shoes':
+          return SizeType.shoes;
+        case 'abayas':
+          return SizeType.abayas;
+        case 'kids':
+          return SizeType.kids;
+        case 'bags':
+          return SizeType.bags;
+        case 'none':
+          return SizeType.none;
+        default:
+          return SizeType.clothes;
+      }
     }
+
+    // Fallback: infer from category name
+    final n = categoryName.toLowerCase();
+    if (n.contains('حقائب') || n.contains('حقيبة') || n.contains('شنط') || n.contains('bag')) {
+      return SizeType.bags;
+    }
+    if (n.contains('حذاء') || n.contains('أحذية') || n.contains('احذية') || n.contains('جزم') || n.contains('shoe')) {
+      return SizeType.shoes;
+    }
+    if (n.contains('عباي') || n.contains('عبايا') || n.contains('abaya')) {
+      return SizeType.abayas;
+    }
+    if (n.contains('أطفال') || n.contains('اطفال') || n.contains('kid')) {
+      return SizeType.kids;
+    }
+    if (n.contains('إكسسوار') || n.contains('اكسسوار') || n.contains('accessor')) {
+      return SizeType.none;
+    }
+    return SizeType.clothes;
   }
 
   factory CategoryModel.fromDoc(DocumentSnapshot doc) {
