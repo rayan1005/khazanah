@@ -906,6 +906,7 @@ class FirestoreService {
       _db.collection(FirestorePaths.users).doc(request.userId),
       {
         'accountType': 'boutique',
+        'boutiqueActive': true,
         'boutiqueName': request.boutiqueName,
         'boutiqueDescription': request.description,
         'instagramUrl': request.instagramUrl,
@@ -930,14 +931,16 @@ class FirestoreService {
   }
 
   /// Get all boutique users (for boutiques tab - only active)
+  /// Filters client-side to handle legacy docs without boutiqueActive field
   Stream<List<UserModel>> boutiquesStream() {
     return _db
         .collection(FirestorePaths.users)
         .where('accountType', isEqualTo: 'boutique')
-        .where('boutiqueActive', isEqualTo: true)
         .snapshots()
-        .map((snap) =>
-            snap.docs.map((d) => UserModel.fromDoc(d)).toList());
+        .map((snap) => snap.docs
+            .map((d) => UserModel.fromDoc(d))
+            .where((u) => u.boutiqueActive)
+            .toList());
   }
 
   /// Get all boutique users including suspended (admin)
