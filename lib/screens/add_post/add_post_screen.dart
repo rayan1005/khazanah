@@ -35,6 +35,7 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
   final _priceController = TextEditingController();
+  final _purchasePriceController = TextEditingController();
 
   List<XFile> _selectedImages = [];
   List<String> _existingImageUrls = []; // For editing
@@ -47,7 +48,9 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
   String? _city;
   bool _negotiable = false;
   bool _isLoading = false;
-  ContactMethod _contactMethod = ContactMethod.chat;
+  bool _allowChat = true;
+  bool _allowWhatsapp = false;
+  bool _commentsEnabled = true;
 
   bool get isEditing => widget.editPostId != null;
 
@@ -111,8 +114,13 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
           _gender = post.gender;
           _city = post.city;
           _negotiable = post.negotiable;
-          _contactMethod = post.contactMethod;
+          _allowChat = post.allowChat;
+          _allowWhatsapp = post.allowWhatsapp;
+          _commentsEnabled = post.commentsEnabled;
           _existingImageUrls = List.from(post.photos);
+          if (post.purchasePrice != null) {
+            _purchasePriceController.text = post.purchasePrice!.toStringAsFixed(0);
+          }
         });
       }
     } else {
@@ -245,6 +253,14 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
       return;
     }
 
+    // At least one contact method must be selected
+    if (!_allowChat && !_allowWhatsapp) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('اختر طريقة تواصل واحدة على الأقل')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -275,10 +291,15 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
           'color': _color,
           'condition': _condition,
           'price': double.parse(_priceController.text),
+          'purchasePrice': _purchasePriceController.text.trim().isNotEmpty
+              ? double.parse(_purchasePriceController.text)
+              : null,
           'negotiable': _negotiable,
           'city': _city,
           'gender': _gender,
-          'contactMethod': _contactMethod.name,
+          'allowChat': _allowChat,
+          'allowWhatsapp': _allowWhatsapp,
+          'commentsEnabled': _commentsEnabled,
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -298,10 +319,15 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
           color: _color!,
           condition: _condition!,
           price: double.parse(_priceController.text),
+          purchasePrice: _purchasePriceController.text.trim().isNotEmpty
+              ? double.parse(_purchasePriceController.text)
+              : null,
           negotiable: _negotiable,
           city: _city!,
           gender: _gender!,
-          contactMethod: _contactMethod,
+          allowChat: _allowChat,
+          allowWhatsapp: _allowWhatsapp,
+          commentsEnabled: _commentsEnabled,
           createdAt: DateTime.now(),
         );
         await service.createPost(post);
@@ -330,6 +356,7 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
     _titleController.dispose();
     _descController.dispose();
     _priceController.dispose();
+    _purchasePriceController.dispose();
     super.dispose();
   }
 
@@ -598,20 +625,29 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Row(
-                    children: [
-                      Switch(
-                        value: _negotiable,
-                        onChanged: (v) => setState(() => _negotiable = v),
-                        activeColor: AppColors.primary,
-                      ),
-                      const Text(AppStrings.negotiable,
-                          style: TextStyle(fontSize: 13)),
-                    ],
+                Expanded(
+                  child: TextFormField(
+                    controller: _purchasePriceController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'سعر الشراء',
+                      hintText: 'اختياري',
+                      suffixText: 'ر.س',
+                    ),
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Switch(
+                  value: _negotiable,
+                  onChanged: (v) => setState(() => _negotiable = v),
+                  activeColor: AppColors.primary,
+                ),
+                const Text(AppStrings.negotiable,
+                    style: TextStyle(fontSize: 13)),
               ],
             ),
             const SizedBox(height: 16),
@@ -632,12 +668,12 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
 
             // Contact method
             const Text(
-              'طريقة التواصل الخاصة',
+              'طريقة التواصل',
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
             ),
             const SizedBox(height: 4),
             const Text(
-              'التعليقات دائماً مفعّلة للسوم والأسئلة العامة. اختر طريقة التواصل للرسائل الخاصة:',
+              'اختر طريقة أو أكثر للتواصل الخاص (يجب اختيار واحدة على الأقل):',
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 12),
@@ -645,40 +681,49 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => setState(() => _contactMethod = ContactMethod.chat),
+                    onTap: () {
+                      setState(() {
+                        // Don't allow deselecting if it's the only one selected
+                        if (_allowChat && !_allowWhatsapp) return;
+                        _allowChat = !_allowChat;
+                      });
+                    },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
-                        color: _contactMethod == ContactMethod.chat
+                        color: _allowChat
                             ? AppColors.primary.withValues(alpha: 0.1)
                             : AppColors.background,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _contactMethod == ContactMethod.chat
+                          color: _allowChat
                               ? AppColors.primary
                               : AppColors.divider,
-                          width: _contactMethod == ContactMethod.chat ? 2 : 1,
+                          width: _allowChat ? 2 : 1,
                         ),
                       ),
                       child: Column(
                         children: [
                           Icon(
                             Icons.chat_bubble_outline,
-                            color: _contactMethod == ContactMethod.chat
+                            color: _allowChat
                                 ? AppColors.primary
                                 : AppColors.textSecondary,
                             size: 28,
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'شات داخلي',
+                            'عبر التطبيق',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
-                              color: _contactMethod == ContactMethod.chat
+                              color: _allowChat
                                   ? AppColors.primary
                                   : AppColors.textSecondary,
                             ),
                           ),
+                          if (_allowChat)
+                            Icon(Icons.check_circle,
+                                size: 16, color: AppColors.primary),
                         ],
                       ),
                     ),
@@ -687,26 +732,32 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => setState(() => _contactMethod = ContactMethod.whatsapp),
+                    onTap: () {
+                      setState(() {
+                        // Don't allow deselecting if it's the only one selected
+                        if (_allowWhatsapp && !_allowChat) return;
+                        _allowWhatsapp = !_allowWhatsapp;
+                      });
+                    },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
-                        color: _contactMethod == ContactMethod.whatsapp
+                        color: _allowWhatsapp
                             ? AppColors.whatsapp.withValues(alpha: 0.1)
                             : AppColors.background,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _contactMethod == ContactMethod.whatsapp
+                          color: _allowWhatsapp
                               ? AppColors.whatsapp
                               : AppColors.divider,
-                          width: _contactMethod == ContactMethod.whatsapp ? 2 : 1,
+                          width: _allowWhatsapp ? 2 : 1,
                         ),
                       ),
                       child: Column(
                         children: [
                           Icon(
                             Icons.chat,
-                            color: _contactMethod == ContactMethod.whatsapp
+                            color: _allowWhatsapp
                                 ? AppColors.whatsapp
                                 : AppColors.textSecondary,
                             size: 28,
@@ -716,17 +767,64 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
                             'واتساب',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
-                              color: _contactMethod == ContactMethod.whatsapp
+                              color: _allowWhatsapp
                                   ? AppColors.whatsapp
                                   : AppColors.textSecondary,
                             ),
                           ),
+                          if (_allowWhatsapp)
+                            Icon(Icons.check_circle,
+                                size: 16, color: AppColors.whatsapp),
                         ],
                       ),
                     ),
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+
+            // Comments toggle
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.divider),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.comment_outlined,
+                      size: 20, color: AppColors.textSecondary),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'التعليقات',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          'السماح للآخرين بالتعليق على الإعلان',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textHint,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: _commentsEnabled,
+                    onChanged: (v) => setState(() => _commentsEnabled = v),
+                    activeColor: AppColors.primary,
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 32),
 

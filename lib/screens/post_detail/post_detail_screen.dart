@@ -343,6 +343,25 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                     color: Colors.white70,
                                   ),
                                 ),
+                                if (post.purchasePrice != null) ...[
+                                  const SizedBox(width: 12),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      'سعر الشراء: ${post.purchasePrice!.toStringAsFixed(0)} ر.س',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                                 if (post.negotiable) ...[
                                   const SizedBox(width: 12),
                                   Container(
@@ -491,8 +510,15 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                               icon: Icons.person_outline,
                               label: 'النوع',
                               value: post.gender,
-                              isLast: true,
+                              isLast: post.purchasePrice == null,
                             ),
+                            if (post.purchasePrice != null)
+                              _DetailRow(
+                                icon: Icons.receipt_long_outlined,
+                                label: 'سعر الشراء',
+                                value: '${post.purchasePrice!.toStringAsFixed(0)} ر.س',
+                                isLast: true,
+                              ),
                           ],
                         ),
                       ),
@@ -523,14 +549,41 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
               ),
 
               // Comments section - full width
-              SliverToBoxAdapter(
-                child: CommentsSection(
-                  postId: post.postId,
-                  postOwnerId: post.userId,
-                  postTitle: post.title,
-                  isPostSold: post.status == PostStatus.sold,
+              if (post.commentsEnabled)
+                SliverToBoxAdapter(
+                  child: CommentsSection(
+                    postId: post.postId,
+                    postOwnerId: post.userId,
+                    postTitle: post.title,
+                    isPostSold: post.status == PostStatus.sold,
+                  ),
+                )
+              else
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.comments_disabled_outlined,
+                            size: 18, color: AppColors.textHint),
+                        SizedBox(width: 8),
+                        Text(
+                          'التعليقات معطلة لهذا الإعلان',
+                          style: TextStyle(
+                            color: AppColors.textHint,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
               const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
               // Similar posts with styled header
@@ -595,8 +648,98 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   }
 
   Widget _buildContactButton(PostModel post, AsyncValue<dynamic> sellerAsync) {
-    // Show button based on contact method
-    if (post.contactMethod == ContactMethod.chat) {
+    final bothEnabled = post.allowChat && post.allowWhatsapp;
+    final chatOnly = post.allowChat && !post.allowWhatsapp;
+    final whatsappOnly = !post.allowChat && post.allowWhatsapp;
+
+    if (bothEnabled) {
+      // Show both buttons side by side
+      return sellerAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, __) => const SizedBox.shrink(),
+        data: (seller) {
+          final whatsappNumber = seller?.phone;
+          return Row(
+            children: [
+              // Chat button
+              Expanded(
+                child: Container(
+                  height: 52,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.primary, AppColors.primaryLight],
+                      begin: Alignment.centerRight,
+                      end: Alignment.centerLeft,
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => _startChat(post.userId, post.postId),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.chat_bubble_outline,
+                              color: Colors.white, size: 20),
+                          SizedBox(width: 6),
+                          Text(
+                            'محادثة',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // WhatsApp button
+              Expanded(
+                child: Container(
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: (whatsappNumber != null && whatsappNumber.isNotEmpty)
+                        ? AppColors.whatsapp
+                        : AppColors.textHint,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: (whatsappNumber != null && whatsappNumber.isNotEmpty)
+                          ? () => _openWhatsApp(whatsappNumber, post.title)
+                          : null,
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.chat, color: Colors.white, size: 20),
+                          SizedBox(width: 6),
+                          Text(
+                            'واتساب',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    } else if (chatOnly) {
       return Container(
         width: double.infinity,
         height: 52,
@@ -639,12 +782,11 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
         ),
       );
     } else {
-      // WhatsApp - use phone number as whatsapp
+      // WhatsApp only
       return sellerAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => const Text('خطأ في تحميل بيانات البائع'),
         data: (seller) {
-          // Use phone number for WhatsApp
           final whatsappNumber = seller?.phone;
           if (whatsappNumber == null || whatsappNumber.isEmpty) {
             return Container(

@@ -2,9 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum PostStatus { active, sold, expired }
 
-/// Contact method for private messages (comments are always enabled)
-enum ContactMethod { chat, whatsapp }
-
 class PostModel {
   final String postId;
   final String userId;
@@ -17,14 +14,18 @@ class PostModel {
   final String color;
   final String condition;
   final double price;
+  final double? purchasePrice;
   final bool negotiable;
   final String city;
   final String gender;
   final PostStatus status;
   final int views;
   final DateTime createdAt;
-  // Contact method for private messages (chat or whatsapp)
-  final ContactMethod contactMethod;
+  // Contact methods (at least one of chat/whatsapp must be true)
+  final bool allowChat;
+  final bool allowWhatsapp;
+  // Comments enabled by default, user can disable
+  final bool commentsEnabled;
 
   const PostModel({
     required this.postId,
@@ -38,13 +39,16 @@ class PostModel {
     required this.color,
     required this.condition,
     required this.price,
+    this.purchasePrice,
     this.negotiable = false,
     required this.city,
     required this.gender,
     this.status = PostStatus.active,
     this.views = 0,
     required this.createdAt,
-    this.contactMethod = ContactMethod.chat,
+    this.allowChat = true,
+    this.allowWhatsapp = false,
+    this.commentsEnabled = true,
   });
 
   bool get isSold => status == PostStatus.sold;
@@ -74,13 +78,16 @@ class PostModel {
     String? color,
     String? condition,
     double? price,
+    double? purchasePrice,
     bool? negotiable,
     String? city,
     String? gender,
     PostStatus? status,
     int? views,
     DateTime? createdAt,
-    ContactMethod? contactMethod,
+    bool? allowChat,
+    bool? allowWhatsapp,
+    bool? commentsEnabled,
   }) {
     return PostModel(
       postId: postId ?? this.postId,
@@ -94,13 +101,16 @@ class PostModel {
       color: color ?? this.color,
       condition: condition ?? this.condition,
       price: price ?? this.price,
+      purchasePrice: purchasePrice ?? this.purchasePrice,
       negotiable: negotiable ?? this.negotiable,
       city: city ?? this.city,
       gender: gender ?? this.gender,
       status: status ?? this.status,
       views: views ?? this.views,
       createdAt: createdAt ?? this.createdAt,
-      contactMethod: contactMethod ?? this.contactMethod,
+      allowChat: allowChat ?? this.allowChat,
+      allowWhatsapp: allowWhatsapp ?? this.allowWhatsapp,
+      commentsEnabled: commentsEnabled ?? this.commentsEnabled,
     );
   }
 
@@ -117,17 +127,29 @@ class PostModel {
       'color': color,
       'condition': condition,
       'price': price,
+      'purchasePrice': purchasePrice,
       'negotiable': negotiable,
       'city': city,
       'gender': gender,
       'status': status.name,
       'views': views,
       'createdAt': Timestamp.fromDate(createdAt),
-      'contactMethod': contactMethod.name,
+      'allowChat': allowChat,
+      'allowWhatsapp': allowWhatsapp,
+      'commentsEnabled': commentsEnabled,
     };
   }
 
   factory PostModel.fromMap(Map<String, dynamic> map) {
+    // Backward compatibility: convert old contactMethod to new allowChat/allowWhatsapp
+    bool allowChat = map['allowChat'] ?? true;
+    bool allowWhatsapp = map['allowWhatsapp'] ?? false;
+    if (map.containsKey('contactMethod') && !map.containsKey('allowChat')) {
+      final method = map['contactMethod'] as String?;
+      allowChat = method == 'chat' || method == null;
+      allowWhatsapp = method == 'whatsapp';
+    }
+
     return PostModel(
       postId: map['postId'] ?? '',
       userId: map['userId'] ?? '',
@@ -140,6 +162,7 @@ class PostModel {
       color: map['color'] ?? '',
       condition: map['condition'] ?? '',
       price: (map['price'] ?? 0).toDouble(),
+      purchasePrice: map['purchasePrice'] != null ? (map['purchasePrice']).toDouble() : null,
       negotiable: map['negotiable'] ?? false,
       city: map['city'] ?? '',
       gender: map['gender'] ?? '',
@@ -149,10 +172,9 @@ class PostModel {
       ),
       views: map['views'] ?? 0,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      contactMethod: ContactMethod.values.firstWhere(
-        (e) => e.name == map['contactMethod'],
-        orElse: () => ContactMethod.chat,
-      ),
+      allowChat: allowChat,
+      allowWhatsapp: allowWhatsapp,
+      commentsEnabled: map['commentsEnabled'] ?? true,
     );
   }
 

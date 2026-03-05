@@ -28,7 +28,7 @@ class Sizes {
 
   /// Bag sizes
   static const List<String> bags = [
-    'صغير',
+    'ميني',
     'وسط',
     'كبير',
   ];
