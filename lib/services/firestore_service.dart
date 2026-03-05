@@ -429,11 +429,12 @@ class FirestoreService {
   }
 
   /// Create category with named params
-  Future<void> createCategory({required String name, required String icon}) async {
+  Future<void> createCategory({required String name, required String icon, String sizeType = 'clothes'}) async {
     final count = (await _db.collection(FirestorePaths.categories).count().get()).count ?? 0;
     await _db.collection(FirestorePaths.categories).add({
       'name': name,
       'icon': icon,
+      'sizeType': sizeType,
       'order': count,
     });
   }
@@ -997,6 +998,19 @@ class FirestoreService {
     await _db.collection(FirestorePaths.users).doc(uid).update({
       field: value,
     });
+  }
+
+  /// Toggle link visibility for ALL boutiques at once (admin)
+  Future<void> toggleAllBoutiquesVisibility(String field, bool value) async {
+    final snap = await _db
+        .collection(FirestorePaths.users)
+        .where('accountType', isEqualTo: 'boutique')
+        .get();
+    final batch = _db.batch();
+    for (final doc in snap.docs) {
+      batch.update(doc.reference, {field: value});
+    }
+    await batch.commit();
   }
 
   /// Report a boutique

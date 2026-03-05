@@ -6,7 +6,7 @@ enum SizeType {
   shoes,    // EU 30-50
   abayas,   // 52-62
   kids,     // Age-based: 0-3m, 3-6m, 6-12m, 1-2y, 2-3y, etc.
-  bags,     // صغير, وسط, كبير
+  bags,     // ميني, وسط, كبير
   none,     // No size (accessories)
 }
 

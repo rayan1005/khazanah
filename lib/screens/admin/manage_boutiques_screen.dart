@@ -36,14 +36,208 @@ class ManageBoutiquesScreen extends ConsumerWidget {
             );
           }
 
-          return ListView.builder(
+          return ListView(
             padding: const EdgeInsets.all(16),
-            itemCount: boutiques.length,
-            itemBuilder: (context, index) {
-              return _BoutiqueAdminCard(boutique: boutiques[index]);
-            },
+            children: [
+              // Global visibility toggles
+              _GlobalVisibilitySection(boutiques: boutiques),
+              const SizedBox(height: 16),
+              // Boutique list
+              ...boutiques.map((b) => _BoutiqueAdminCard(boutique: b)),
+            ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Global toggles to show/hide social links for ALL boutiques
+class _GlobalVisibilitySection extends StatefulWidget {
+  final List<UserModel> boutiques;
+  const _GlobalVisibilitySection({required this.boutiques});
+
+  @override
+  State<_GlobalVisibilitySection> createState() =>
+      _GlobalVisibilitySectionState();
+}
+
+class _GlobalVisibilitySectionState extends State<_GlobalVisibilitySection> {
+  bool _isLoading = false;
+
+  /// Check if majority of boutiques have this field enabled
+  bool _majorityEnabled(String field) {
+    int enabled = 0;
+    for (final b in widget.boutiques) {
+      final val = field == 'showInstagram'
+          ? b.showInstagram
+          : field == 'showTiktok'
+              ? b.showTiktok
+              : b.showMaaroof;
+      if (val) enabled++;
+    }
+    return enabled > widget.boutiques.length / 2;
+  }
+
+  Future<void> _toggleAll(String field, bool newValue) async {
+    setState(() => _isLoading = true);
+    try {
+      await FirestoreService().toggleAllBoutiquesVisibility(field, newValue);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(newValue
+                ? 'تم إظهار الرابط لجميع البوتيكات'
+                : 'تم إخفاء الرابط لجميع البوتيكات'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final instagramOn = _majorityEnabled('showInstagram');
+    final tiktokOn = _majorityEnabled('showTiktok');
+    final maaroofOn = _majorityEnabled('showMaaroof');
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: AppColors.primary.withValues(alpha: 0.04),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.public, size: 18, color: AppColors.primary),
+                const SizedBox(width: 6),
+                const Text(
+                  'التحكم بالروابط لجميع البوتيكات',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'إظهار أو إخفاء الروابط الاجتماعية لكل البوتيكات دفعة واحدة',
+              style: TextStyle(fontSize: 11, color: AppColors.textHint),
+            ),
+            const SizedBox(height: 12),
+            if (_isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(8),
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: _GlobalToggleButton(
+                      label: 'انستقرام',
+                      icon: Icons.camera_alt,
+                      isEnabled: instagramOn,
+                      onToggle: () =>
+                          _toggleAll('showInstagram', !instagramOn),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _GlobalToggleButton(
+                      label: 'تيكتوك',
+                      icon: Icons.music_note,
+                      isEnabled: tiktokOn,
+                      onToggle: () =>
+                          _toggleAll('showTiktok', !tiktokOn),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _GlobalToggleButton(
+                      label: 'معروف',
+                      icon: Icons.verified_user,
+                      isEnabled: maaroofOn,
+                      onToggle: () =>
+                          _toggleAll('showMaaroof', !maaroofOn),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GlobalToggleButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isEnabled;
+  final VoidCallback onToggle;
+
+  const _GlobalToggleButton({
+    required this.label,
+    required this.icon,
+    required this.isEnabled,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onToggle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isEnabled
+              ? AppColors.success.withValues(alpha: 0.1)
+              : AppColors.textHint.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isEnabled
+                ? AppColors.success.withValues(alpha: 0.4)
+                : AppColors.textHint.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(icon,
+                size: 20,
+                color: isEnabled ? AppColors.success : AppColors.textHint),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isEnabled ? AppColors.success : AppColors.textHint,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Icon(
+              isEnabled ? Icons.visibility : Icons.visibility_off,
+              size: 14,
+              color: isEnabled ? AppColors.success : AppColors.textHint,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -124,19 +318,6 @@ class _BoutiqueAdminCardState extends ConsumerState<_BoutiqueAdminCard> {
     }
   }
 
-  Future<void> _toggleVisibility(String field, bool currentValue) async {
-    try {
-      await FirestoreService()
-          .toggleBoutiqueVisibility(widget.boutique.uid, field, !currentValue);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ: $e'), backgroundColor: AppColors.error),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final b = widget.boutique;
@@ -203,58 +384,6 @@ class _BoutiqueAdminCardState extends ConsumerState<_BoutiqueAdminCard> {
 
           const Divider(height: 1),
 
-          // Visibility toggles
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'إظهار الروابط للزوار',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    _VisibilityChip(
-                      label: 'انستقرام',
-                      icon: Icons.camera_alt,
-                      isVisible: b.showInstagram,
-                      hasUrl: b.instagramUrl != null,
-                      onToggle: () =>
-                          _toggleVisibility('showInstagram', b.showInstagram),
-                    ),
-                    const SizedBox(width: 6),
-                    _VisibilityChip(
-                      label: 'تيكتوك',
-                      icon: Icons.music_note,
-                      isVisible: b.showTiktok,
-                      hasUrl: b.tiktokUrl != null,
-                      onToggle: () =>
-                          _toggleVisibility('showTiktok', b.showTiktok),
-                    ),
-                    const SizedBox(width: 6),
-                    _VisibilityChip(
-                      label: 'معروف',
-                      icon: Icons.verified_user,
-                      isVisible: b.showMaaroof,
-                      hasUrl: b.maaroofUrl != null,
-                      onToggle: () =>
-                          _toggleVisibility('showMaaroof', b.showMaaroof),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          const Divider(height: 1),
-
           // Action buttons
           Padding(
             padding: const EdgeInsets.all(8),
@@ -309,67 +438,6 @@ class _BoutiqueAdminCardState extends ConsumerState<_BoutiqueAdminCard> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _VisibilityChip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool isVisible;
-  final bool hasUrl;
-  final VoidCallback onToggle;
-
-  const _VisibilityChip({
-    required this.label,
-    required this.icon,
-    required this.isVisible,
-    required this.hasUrl,
-    required this.onToggle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final active = isVisible && hasUrl;
-    return GestureDetector(
-      onTap: hasUrl ? onToggle : null,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: active
-              ? AppColors.success.withValues(alpha: 0.1)
-              : AppColors.textHint.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: active
-                ? AppColors.success.withValues(alpha: 0.4)
-                : AppColors.textHint.withValues(alpha: 0.3),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon,
-                size: 12,
-                color: active ? AppColors.success : AppColors.textHint),
-            const SizedBox(width: 3),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                color: active ? AppColors.success : AppColors.textHint,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: 3),
-            Icon(
-              active ? Icons.visibility : Icons.visibility_off,
-              size: 12,
-              color: active ? AppColors.success : AppColors.textHint,
-            ),
-          ],
-        ),
       ),
     );
   }

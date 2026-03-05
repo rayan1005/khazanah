@@ -47,6 +47,10 @@ class ManageCategoriesScreen extends ConsumerWidget {
                 key: ValueKey(cat.id),
                 leading: Text(cat.icon, style: const TextStyle(fontSize: 24)),
                 title: Text(cat.name),
+                subtitle: Text(
+                  _sizeTypeLabel(cat.sizeType),
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -69,54 +73,105 @@ class ManageCategoriesScreen extends ConsumerWidget {
     );
   }
 
+  String _sizeTypeLabel(SizeType t) {
+    switch (t) {
+      case SizeType.clothes:
+        return 'ملابس';
+      case SizeType.shoes:
+        return 'أحذية';
+      case SizeType.abayas:
+        return 'عبايات';
+      case SizeType.kids:
+        return 'أطفال';
+      case SizeType.bags:
+        return 'حقائب';
+      case SizeType.none:
+        return 'بدون مقاس';
+    }
+  }
+
   void _showAddEditDialog(BuildContext context, {CategoryModel? category}) {
     final nameController = TextEditingController(text: category?.name ?? '');
     final iconController = TextEditingController(text: category?.icon ?? '');
+    SizeType selectedSizeType = category?.sizeType ?? SizeType.clothes;
+
+    final sizeTypeLabels = {
+      SizeType.clothes: 'ملابس (XS-XXXL)',
+      SizeType.shoes: 'أحذية (30-50)',
+      SizeType.abayas: 'عبايات (52-62)',
+      SizeType.kids: 'أطفال (حسب العمر)',
+      SizeType.bags: 'حقائب (ميني/وسط/كبير)',
+      SizeType.none: 'بدون مقاس',
+    };
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(category != null ? 'تعديل التصنيف' : 'إضافة تصنيف'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'اسم التصنيف'),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(category != null ? 'تعديل التصنيف' : 'إضافة تصنيف'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'اسم التصنيف'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: iconController,
+                decoration: const InputDecoration(
+                    labelText: 'أيقونة (إيموجي)', hintText: '👕'),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<SizeType>(
+                value: selectedSizeType,
+                decoration: const InputDecoration(labelText: 'نوع المقاسات'),
+                isExpanded: true,
+                items: SizeType.values
+                    .map((t) => DropdownMenuItem(
+                          value: t,
+                          child: Text(sizeTypeLabels[t] ?? t.name),
+                        ))
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) {
+                    setDialogState(() => selectedSizeType = v);
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => ctx.pop(),
+              child: const Text(AppStrings.cancel),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: iconController,
-              decoration: const InputDecoration(
-                  labelText: 'أيقونة (إيموجي)', hintText: '👕'),
+            TextButton(
+              onPressed: () async {
+                final name = nameController.text.trim();
+                final icon = iconController.text.trim();
+                if (name.isEmpty) return;
+
+                if (category != null) {
+                  await FirestoreService().updateCategory(
+                      category.id, {
+                    'name': name,
+                    'icon': icon,
+                    'sizeType': selectedSizeType.name,
+                  });
+                } else {
+                  await FirestoreService().createCategory(
+                    name: name,
+                    icon: icon.isEmpty ? '📦' : icon,
+                    sizeType: selectedSizeType.name,
+                  );
+                }
+                if (ctx.mounted) ctx.pop();
+              },
+              child: const Text(AppStrings.save),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => ctx.pop(),
-            child: const Text(AppStrings.cancel),
-          ),
-          TextButton(
-            onPressed: () async {
-              final name = nameController.text.trim();
-              final icon = iconController.text.trim();
-              if (name.isEmpty) return;
-
-              if (category != null) {
-                await FirestoreService().updateCategory(
-                    category.id, {'name': name, 'icon': icon});
-              } else {
-                await FirestoreService().createCategory(
-                  name: name,
-                  icon: icon.isEmpty ? '📦' : icon,
-                );
-              }
-              if (ctx.mounted) ctx.pop();
-            },
-            child: const Text(AppStrings.save),
-          ),
-        ],
       ),
     );
   }
