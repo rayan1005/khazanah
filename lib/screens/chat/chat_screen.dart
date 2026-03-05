@@ -10,6 +10,7 @@ import '../../models/message_model.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/post_provider.dart';
+import '../../providers/app_settings_provider.dart';
 
 class ChatDetailScreen extends ConsumerStatefulWidget {
   final String chatId;
@@ -235,6 +236,50 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                         ],
                       ),
                     ),
+                  );
+                },
+              ),
+
+              // Mediator warning banner
+              Consumer(
+                builder: (context, ref, _) {
+                  final settingsAsync =
+                      ref.watch(appSettingsStreamProvider);
+                  return settingsAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (settings) {
+                      if (settings.mediatorWarningText.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.08),
+                          border: Border(
+                            bottom: BorderSide(
+                                color: Colors.orange.withValues(alpha: 0.2)),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.info_outline,
+                                size: 14, color: Colors.orange),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                settings.mediatorWarningText,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.orange,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   );
                 },
               ),

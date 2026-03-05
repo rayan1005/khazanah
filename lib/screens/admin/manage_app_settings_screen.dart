@@ -20,6 +20,7 @@ class _ManageAppSettingsScreenState
   final _bankNameController = TextEditingController();
   final _bankAccountController = TextEditingController();
   final _photoWarningController = TextEditingController();
+  final _mediatorWarningController = TextEditingController();
   final _termsController = TextEditingController();
   final _privacyController = TextEditingController();
   final _supportEmailController = TextEditingController();
@@ -32,6 +33,7 @@ class _ManageAppSettingsScreenState
     _bankNameController.dispose();
     _bankAccountController.dispose();
     _photoWarningController.dispose();
+    _mediatorWarningController.dispose();
     _termsController.dispose();
     _privacyController.dispose();
     _supportEmailController.dispose();
@@ -49,6 +51,7 @@ class _ManageAppSettingsScreenState
         'bankName': _bankNameController.text.trim(),
         'bankAccount': _bankAccountController.text.trim(),
         'photoWarningText': _photoWarningController.text.trim(),
+        'mediatorWarningText': _mediatorWarningController.text.trim(),
         'termsAndConditions': _termsController.text.trim(),
         'privacyPolicy': _privacyController.text.trim(),
         'supportEmail': _supportEmailController.text.trim(),
@@ -110,6 +113,7 @@ class _ManageAppSettingsScreenState
             _bankNameController.text = settings.bankName;
             _bankAccountController.text = settings.bankAccount;
             _photoWarningController.text = settings.photoWarningText;
+            _mediatorWarningController.text = settings.mediatorWarningText;
             _termsController.text = settings.termsAndConditions;
             _privacyController.text = settings.privacyPolicy;
             _supportEmailController.text = settings.supportEmail;
@@ -176,6 +180,25 @@ class _ManageAppSettingsScreenState
                       padding: EdgeInsets.only(bottom: 24),
                       child: Icon(Icons.warning_amber),
                     ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Mediator Warning
+                _SectionHeader(
+                    icon: Icons.gavel, title: 'تحذير الوساطة'),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _mediatorWarningController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'نص تحذير الوساطة',
+                    hintText: 'تطبيق خزانة وسيط بين البائع والمشتري...',
+                    prefixIcon: Padding(
+                      padding: EdgeInsets.only(bottom: 48),
+                      child: Icon(Icons.gavel),
+                    ),
+                    border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 24),

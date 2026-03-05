@@ -17,6 +17,7 @@ import '../../services/firestore_service.dart';
 import '../../widgets/post_card.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/comments_section.dart';
+import '../../providers/app_settings_provider.dart';
 
 class PostDetailScreen extends ConsumerStatefulWidget {
   final String postId;
@@ -658,7 +659,48 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                     ],
                   ),
                   child: SafeArea(
-                    child: _buildContactButton(post, sellerAsync),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Mediator warning
+                        Consumer(
+                          builder: (context, ref, _) {
+                            final settingsAsync =
+                                ref.watch(appSettingsStreamProvider);
+                            return settingsAsync.when(
+                              loading: () => const SizedBox.shrink(),
+                              error: (_, __) => const SizedBox.shrink(),
+                              data: (settings) {
+                                if (settings.mediatorWarningText.isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.info_outline,
+                                          size: 14,
+                                          color: AppColors.textHint),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          settings.mediatorWarningText,
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.textHint,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                        _buildContactButton(post, sellerAsync),
+                      ],
+                    ),
                   ),
                 ),
         );

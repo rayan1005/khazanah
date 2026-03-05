@@ -5,6 +5,7 @@ class AppSettingsModel {
   final String bankName;
   final String bankAccount;
   final String photoWarningText;
+  final String mediatorWarningText;
   final String termsAndConditions;
   final String privacyPolicy;
   final String supportEmail;
@@ -14,6 +15,7 @@ class AppSettingsModel {
     this.bankName = '',
     this.bankAccount = '',
     this.photoWarningText = 'يمنع نشر الصور العارية أو المخالفة',
+    this.mediatorWarningText = 'تطبيق خزانة وسيط بين البائع والمشتري ولا يتحمل مسؤولية أي عملية بيع أو شراء',
     this.termsAndConditions = '',
     this.privacyPolicy = '',
     this.supportEmail = '',
@@ -25,6 +27,7 @@ class AppSettingsModel {
       'bankName': bankName,
       'bankAccount': bankAccount,
       'photoWarningText': photoWarningText,
+      'mediatorWarningText': mediatorWarningText,
       'termsAndConditions': termsAndConditions,
       'privacyPolicy': privacyPolicy,
       'supportEmail': supportEmail,
@@ -37,6 +40,7 @@ class AppSettingsModel {
       bankName: map['bankName'] ?? '',
       bankAccount: map['bankAccount'] ?? '',
       photoWarningText: map['photoWarningText'] ?? 'يمنع نشر الصور العارية أو المخالفة',
+      mediatorWarningText: map['mediatorWarningText'] ?? 'تطبيق خزانة وسيط بين البائع والمشتري ولا يتحمل مسؤولية أي عملية بيع أو شراء',
       termsAndConditions: map['termsAndConditions'] ?? '',
       privacyPolicy: map['privacyPolicy'] ?? '',
       supportEmail: map['supportEmail'] ?? '',
@@ -53,6 +57,7 @@ class AppSettingsModel {
     String? bankName,
     String? bankAccount,
     String? photoWarningText,
+    String? mediatorWarningText,
     String? termsAndConditions,
     String? privacyPolicy,
     String? supportEmail,
@@ -62,6 +67,7 @@ class AppSettingsModel {
       bankName: bankName ?? this.bankName,
       bankAccount: bankAccount ?? this.bankAccount,
       photoWarningText: photoWarningText ?? this.photoWarningText,
+      mediatorWarningText: mediatorWarningText ?? this.mediatorWarningText,
       termsAndConditions: termsAndConditions ?? this.termsAndConditions,
       privacyPolicy: privacyPolicy ?? this.privacyPolicy,
       supportEmail: supportEmail ?? this.supportEmail,
