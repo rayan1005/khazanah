@@ -1,11 +1,11 @@
 {
-    "name": "khazanah",
-    "short_name": "khazanah",
+    "name": "خزانة",
+    "short_name": "خزانة",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "خزانة — تطبيق إعلانات الملابس والحقائب المستعملة",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
