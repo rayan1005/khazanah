@@ -9,6 +9,7 @@ class BoutiqueRequestModel {
   final String description;
   final String instagramUrl;
   final String? tiktokUrl;
+  final String? snapchatUrl;
   final String maaroofCertificateUrl; // صورة شهادة معروف
   final String maaroofUrl; // رابط متجر معروف
   final BoutiqueRequestStatus status;
@@ -23,6 +24,7 @@ class BoutiqueRequestModel {
     required this.description,
     required this.instagramUrl,
     this.tiktokUrl,
+    this.snapchatUrl,
     required this.maaroofCertificateUrl,
     required this.maaroofUrl,
     this.status = BoutiqueRequestStatus.pending,
@@ -53,6 +55,7 @@ class BoutiqueRequestModel {
       'description': description,
       'instagramUrl': instagramUrl,
       'tiktokUrl': tiktokUrl,
+      'snapchatUrl': snapchatUrl,
       'maaroofCertificateUrl': maaroofCertificateUrl,
       'maaroofUrl': maaroofUrl,
       'status': status.name,
@@ -71,6 +74,7 @@ class BoutiqueRequestModel {
       description: map['description'] ?? '',
       instagramUrl: map['instagramUrl'] ?? '',
       tiktokUrl: map['tiktokUrl'],
+      snapchatUrl: map['snapchatUrl'],
       maaroofCertificateUrl: map['maaroofCertificateUrl'] ?? '',
       maaroofUrl: map['maaroofUrl'] ?? '',
       status: BoutiqueRequestStatus.values.firstWhere(

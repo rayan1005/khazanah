@@ -29,8 +29,13 @@ import '../../screens/admin/manage_banners_screen.dart';
 import '../../screens/admin/manage_home_sections_screen.dart';
 import '../../screens/admin/manage_boutique_requests_screen.dart';
 import '../../screens/admin/manage_boutiques_screen.dart';
+import '../../screens/admin/manage_app_settings_screen.dart';
 import '../../screens/boutiques/edit_boutique_screen.dart';
 import '../../screens/notifications/notifications_screen.dart';
+import '../../screens/profile/commission_calculator_screen.dart';
+import '../../screens/profile/content_screen.dart';
+import '../../screens/profile/support_screen.dart';
+import '../../screens/web/web_landing_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -45,7 +50,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = authState.valueOrNull != null;
       final isAuthRoute = state.matchedLocation == '/login' ||
           state.matchedLocation == '/otp' ||
-          state.matchedLocation == '/profile-setup';
+          state.matchedLocation == '/profile-setup' ||
+          state.matchedLocation == '/welcome' ||
+          state.matchedLocation == '/terms' ||
+          state.matchedLocation == '/privacy';
 
       if (!isLoggedIn && !isAuthRoute) {
         return '/login';
@@ -57,6 +65,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       // Auth routes
+      GoRoute(
+        path: '/welcome',
+        builder: (context, state) => const WebLandingScreen(),
+      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
@@ -160,6 +172,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(
+        path: '/commission-calculator',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const CommissionCalculatorScreen(),
+      ),
+      GoRoute(
+        path: '/terms',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => ContentScreen(
+          title: 'الشروط والأحكام',
+          contentSelector: (s) => s.termsAndConditions,
+        ),
+      ),
+      GoRoute(
+        path: '/privacy',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => ContentScreen(
+          title: 'سياسة الخصوصية',
+          contentSelector: (s) => s.privacyPolicy,
+        ),
+      ),
+      GoRoute(
+        path: '/support',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SupportScreen(),
+      ),
+      GoRoute(
         path: '/edit-profile',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const EditProfileScreen(),
@@ -228,6 +266,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/admin/boutiques',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ManageBoutiquesScreen(),
+      ),
+      GoRoute(
+        path: '/admin/settings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ManageAppSettingsScreen(),
       ),
     ],
   );

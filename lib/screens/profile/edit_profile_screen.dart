@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/constants/saudi_cities.dart';
 import '../../core/utils/image_utils.dart';
+import '../../core/utils/permission_utils.dart';
 import '../../core/utils/validators.dart';
 import '../../providers/user_provider.dart';
 import '../../services/firestore_service.dart';
@@ -35,6 +36,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   void _pickPhoto() async {
+    final hasPermission = await PermissionUtils.requestPhotos(context);
+    if (!hasPermission) return;
     final photo = await ImageUtils.pickFromGallery();
     if (photo != null) {
       setState(() => _newPhoto = photo);

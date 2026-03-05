@@ -21,6 +21,7 @@ import '../../providers/category_provider.dart';
 import '../../providers/brand_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/storage_service.dart';
+import '../../providers/app_settings_provider.dart';
 
 class AddPostScreen extends ConsumerStatefulWidget {
   final String? editPostId;
@@ -458,6 +459,42 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
                     ),
                 ],
               ),
+            ),
+
+            // Photo warning text from app settings
+            Consumer(
+              builder: (context, ref, _) {
+                final settingsAsync = ref.watch(appSettingsStreamProvider);
+                return settingsAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (settings) {
+                    if (settings.photoWarningText.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.warning_amber,
+                              size: 16, color: Colors.orange),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              settings.photoWarningText,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.orange,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
             ),
             const SizedBox(height: 20),
 

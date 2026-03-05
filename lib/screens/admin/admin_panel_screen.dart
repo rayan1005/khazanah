@@ -118,6 +118,12 @@ class AdminPanelScreen extends ConsumerWidget {
             subtitle: 'إدارة البوتيكات وإيقافها وإظهار الروابط',
             onTap: () => context.push('/admin/boutiques'),
           ),
+          _AdminTile(
+            icon: Icons.settings,
+            title: 'إعدادات التطبيق',
+            subtitle: 'العمولة والشروط والخصوصية والدعم',
+            onTap: () => context.push('/admin/settings'),
+          ),
         ],
       ),
     );

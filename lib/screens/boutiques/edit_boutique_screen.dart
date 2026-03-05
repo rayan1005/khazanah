@@ -9,6 +9,7 @@ import '../../core/constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../services/storage_service.dart';
+import '../../core/utils/permission_utils.dart';
 
 class EditBoutiqueScreen extends ConsumerStatefulWidget {
   const EditBoutiqueScreen({super.key});
@@ -23,6 +24,7 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
   final _descController = TextEditingController();
   final _instagramController = TextEditingController();
   final _tiktokController = TextEditingController();
+  final _snapchatController = TextEditingController();
   final _maaroofController = TextEditingController();
 
   XFile? _newLogo;
@@ -38,6 +40,7 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
     _descController.dispose();
     _instagramController.dispose();
     _tiktokController.dispose();
+    _snapchatController.dispose();
     _maaroofController.dispose();
     super.dispose();
   }
@@ -49,6 +52,7 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
       _descController.text = user.boutiqueDescription ?? '';
       _instagramController.text = user.instagramUrl ?? '';
       _tiktokController.text = user.tiktokUrl ?? '';
+      _snapchatController.text = user.snapchatUrl ?? '';
       _maaroofController.text = user.maaroofUrl ?? '';
       _currentLogoUrl = user.boutiqueLogo;
       _currentCoverUrl = user.boutiqueCover;
@@ -57,6 +61,8 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
   }
 
   Future<void> _pickCover() async {
+    final hasPermission = await PermissionUtils.requestPhotos(context);
+    if (!hasPermission) return;
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: ImageSource.gallery,
@@ -69,6 +75,8 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
   }
 
   Future<void> _pickLogo() async {
+    final hasPermission = await PermissionUtils.requestPhotos(context);
+    if (!hasPermission) return;
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: ImageSource.gallery,
@@ -115,6 +123,9 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
 
       final tiktok = _tiktokController.text.trim();
       data['tiktokUrl'] = tiktok.isNotEmpty ? tiktok : null;
+
+      final snapchat = _snapchatController.text.trim();
+      data['snapchatUrl'] = snapchat.isNotEmpty ? snapchat : null;
 
       final maaroof = _maaroofController.text.trim();
       data['maaroofUrl'] = maaroof.isNotEmpty ? maaroof : null;
@@ -341,6 +352,18 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
                           labelText: 'رابط تيكتوك',
                           prefixIcon: const Icon(Icons.music_note),
                           hintText: 'https://tiktok.com/...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _snapchatController,
+                        decoration: InputDecoration(
+                          labelText: 'حساب سناب شات',
+                          prefixIcon: const Icon(Icons.photo_camera_front),
+                          hintText: 'https://snapchat.com/add/...',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

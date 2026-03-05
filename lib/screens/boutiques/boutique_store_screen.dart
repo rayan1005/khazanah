@@ -57,6 +57,24 @@ class BoutiqueStoreScreen extends ConsumerWidget {
                       ),
                       onPressed: () => context.push('/edit-boutique'),
                     ),
+                  if (isOwner)
+                    IconButton(
+                      icon: CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.white,
+                        child: Icon(
+                          user.boutiqueActive
+                              ? Icons.pause_circle
+                              : Icons.play_circle,
+                          size: 16,
+                          color: user.boutiqueActive
+                              ? Colors.orange
+                              : AppColors.success,
+                        ),
+                      ),
+                      onPressed: () =>
+                          _toggleSelfSuspend(context, ref, user),
+                    ),
                   if (!isOwner)
                     PopupMenuButton<String>(
                       icon: const CircleAvatar(
@@ -231,7 +249,9 @@ class BoutiqueStoreScreen extends ConsumerWidget {
                         ),
                       // Social links (respect visibility flags)
                       const SizedBox(height: 12),
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
                         children: [
                           if (user.instagramUrl != null &&
                               (user.showInstagram || isOwner || isAdmin))
@@ -242,25 +262,38 @@ class BoutiqueStoreScreen extends ConsumerWidget {
                               onTap: () => _launchUrl(user.instagramUrl!),
                             ),
                           if (user.tiktokUrl != null &&
-                              (user.showTiktok || isOwner || isAdmin)) ...[
-                            const SizedBox(width: 8),
+                              (user.showTiktok || isOwner || isAdmin))
                             _SocialButton(
                               icon: Icons.music_note,
                               label: 'تيكتوك',
                               color: Colors.black87,
                               onTap: () => _launchUrl(user.tiktokUrl!),
                             ),
-                          ],
-                          if (user.maaroofUrl != null &&
-                              (user.showMaaroof || isOwner || isAdmin)) ...[
-                            const SizedBox(width: 8),
+                          if (user.snapchatUrl != null &&
+                              (user.showSnapchat || isOwner || isAdmin))
+                            _SocialButton(
+                              icon: Icons.photo_camera_front,
+                              label: 'سناب شات',
+                              color: const Color(0xFFFFFC00),
+                              onTap: () => _launchUrl(user.snapchatUrl!),
+                            ),
+                          if ((user.maaroofCertificateUrl != null ||
+                                  user.maaroofUrl != null) &&
+                              (user.showMaaroof || isOwner || isAdmin))
                             _SocialButton(
                               icon: Icons.verified_user,
                               label: 'معروف',
                               color: const Color(0xFF2E7D32),
-                              onTap: () => _launchUrl(user.maaroofUrl!),
+                              onTap: () {
+                                if (user.maaroofCertificateUrl != null &&
+                                    user.maaroofCertificateUrl!.isNotEmpty) {
+                                  _showCertificateDialog(
+                                      context, user.maaroofCertificateUrl!);
+                                } else if (user.maaroofUrl != null) {
+                                  _launchUrl(user.maaroofUrl!);
+                                }
+                              },
                             ),
-                          ],
                         ],
                       ),
                       const Divider(height: 32),
@@ -335,6 +368,60 @@ class BoutiqueStoreScreen extends ConsumerWidget {
     );
   }
 
+  void _toggleSelfSuspend(
+      BuildContext context, WidgetRef ref, dynamic user) async {
+    final willSuspend = user.boutiqueActive;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(willSuspend ? 'إيقاف البوتيك' : 'تفعيل البوتيك'),
+        content: Text(willSuspend
+            ? 'هل تريد إيقاف البوتيك مؤقتاً؟ لن يظهر متجرك للمستخدمين.'
+            : 'هل تريد إعادة تفعيل البوتيك؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              willSuspend ? 'إيقاف' : 'تفعيل',
+              style: TextStyle(
+                  color: willSuspend ? Colors.orange : AppColors.success),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final firestoreService = FirestoreService();
+      if (willSuspend) {
+        await firestoreService.suspendBoutique(user.uid);
+      } else {
+        await firestoreService.activateBoutique(user.uid);
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text(willSuspend ? 'تم إيقاف البوتيك مؤقتاً' : 'تم تفعيل البوتيك'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    }
+  }
+
   void _showReportDialog(BuildContext context, WidgetRef ref, String boutiqueUserId) {
     final reasonController = TextEditingController();
     showDialog(
@@ -397,6 +484,58 @@ class BoutiqueStoreScreen extends ConsumerWidget {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
+  }
+
+  void _showCertificateDialog(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  const Icon(Icons.verified_user,
+                      color: Color(0xFF2E7D32), size: 20),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'شهادة معروف',
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 20),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+            ),
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+              child: CachedNetworkImage(
+                imageUrl: imageUrl,
+                fit: BoxFit.contain,
+                placeholder: (_, __) => const SizedBox(
+                  height: 200,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                errorWidget: (_, __, ___) => const SizedBox(
+                  height: 200,
+                  child: Center(child: Icon(Icons.error)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

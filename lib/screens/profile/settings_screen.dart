@@ -88,9 +88,7 @@ class SettingsScreen extends ConsumerWidget {
             title: const Text('سياسة الخصوصية'),
             trailing: const Icon(Icons.chevron_left,
                 size: 20, color: AppColors.textHint),
-            onTap: () {
-              // TODO: Open privacy policy URL
-            },
+            onTap: () => context.push('/privacy'),
           ),
 
           // Terms
@@ -100,9 +98,7 @@ class SettingsScreen extends ConsumerWidget {
             title: const Text('الشروط والأحكام'),
             trailing: const Icon(Icons.chevron_left,
                 size: 20, color: AppColors.textHint),
-            onTap: () {
-              // TODO: Open terms URL
-            },
+            onTap: () => context.push('/terms'),
           ),
 
           const Divider(height: 1),

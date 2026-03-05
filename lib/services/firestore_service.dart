@@ -11,6 +11,7 @@ import '../models/banner_model.dart';
 import '../models/home_section_model.dart';
 import '../models/quick_filter_model.dart';
 import '../models/boutique_request_model.dart';
+import '../models/app_settings_model.dart';
 import '../core/constants/firestore_paths.dart';
 
 class FirestoreService {
@@ -912,7 +913,9 @@ class FirestoreService {
         'boutiqueDescription': request.description,
         'instagramUrl': request.instagramUrl,
         'tiktokUrl': request.tiktokUrl,
+        'snapchatUrl': request.snapchatUrl,
         'maaroofUrl': request.maaroofUrl,
+        'maaroofCertificateUrl': request.maaroofCertificateUrl,
       },
     );
 
@@ -1041,5 +1044,51 @@ class FirestoreService {
   /// Delete boutique report
   Future<void> deleteBoutiqueReport(String id) async {
     await _db.collection('boutiqueReports').doc(id).delete();
+  }
+
+  /// Delete boutique completely (admin) - reverts to user and removes boutique data
+  Future<void> deleteBoutique(String uid) async {
+    await _db.collection(FirestorePaths.users).doc(uid).update({
+      'accountType': 'user',
+      'boutiqueActive': false,
+      'boutiqueName': FieldValue.delete(),
+      'boutiqueDescription': FieldValue.delete(),
+      'boutiqueLogo': FieldValue.delete(),
+      'boutiqueCover': FieldValue.delete(),
+      'instagramUrl': FieldValue.delete(),
+      'tiktokUrl': FieldValue.delete(),
+      'snapchatUrl': FieldValue.delete(),
+      'maaroofUrl': FieldValue.delete(),
+      'maaroofCertificateUrl': FieldValue.delete(),
+      'showInstagram': FieldValue.delete(),
+      'showTiktok': FieldValue.delete(),
+      'showSnapchat': FieldValue.delete(),
+      'showMaaroof': FieldValue.delete(),
+    });
+  }
+
+  // ==================== APP SETTINGS ====================
+
+  /// Get app settings stream
+  Stream<AppSettingsModel> appSettingsStream() {
+    return _db
+        .collection('appSettings')
+        .doc('config')
+        .snapshots()
+        .map((doc) => AppSettingsModel.fromDoc(doc));
+  }
+
+  /// Get app settings once
+  Future<AppSettingsModel> getAppSettings() async {
+    final doc = await _db.collection('appSettings').doc('config').get();
+    return AppSettingsModel.fromDoc(doc);
+  }
+
+  /// Update app settings
+  Future<void> updateAppSettings(Map<String, dynamic> data) async {
+    await _db.collection('appSettings').doc('config').set(
+      data,
+      SetOptions(merge: true),
+    );
   }
 }

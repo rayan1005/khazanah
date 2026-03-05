@@ -152,6 +152,20 @@ class ProfileScreen extends ConsumerWidget {
                 onTap: () => context.push('/settings'),
               ),
 
+              // Commission calculator
+              _ProfileTile(
+                icon: Icons.calculate_outlined,
+                title: 'حاسبة العمولة',
+                onTap: () => context.push('/commission-calculator'),
+              ),
+
+              // Support
+              _ProfileTile(
+                icon: Icons.support_agent,
+                title: 'الدعم والتواصل',
+                onTap: () => context.push('/support'),
+              ),
+
               const Divider(height: 1),
 
               // Logout

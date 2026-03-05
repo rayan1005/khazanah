@@ -18,10 +18,13 @@ class UserModel {
   final String? boutiqueDescription;
   final String? instagramUrl;
   final String? tiktokUrl;
+  final String? snapchatUrl;
   final String? maaroofUrl;
+  final String? maaroofCertificateUrl;
   final bool boutiqueActive; // admin can suspend
   final bool showInstagram; // admin controls visibility
   final bool showTiktok;
+  final bool showSnapchat;
   final bool showMaaroof;
 
   const UserModel({
@@ -41,10 +44,13 @@ class UserModel {
     this.boutiqueDescription,
     this.instagramUrl,
     this.tiktokUrl,
+    this.snapchatUrl,
     this.maaroofUrl,
+    this.maaroofCertificateUrl,
     this.boutiqueActive = true,
     this.showInstagram = true,
     this.showTiktok = true,
+    this.showSnapchat = true,
     this.showMaaroof = true,
   });
 
@@ -68,10 +74,13 @@ class UserModel {
     String? boutiqueDescription,
     String? instagramUrl,
     String? tiktokUrl,
+    String? snapchatUrl,
     String? maaroofUrl,
+    String? maaroofCertificateUrl,
     bool? boutiqueActive,
     bool? showInstagram,
     bool? showTiktok,
+    bool? showSnapchat,
     bool? showMaaroof,
   }) {
     return UserModel(
@@ -91,10 +100,13 @@ class UserModel {
       boutiqueDescription: boutiqueDescription ?? this.boutiqueDescription,
       instagramUrl: instagramUrl ?? this.instagramUrl,
       tiktokUrl: tiktokUrl ?? this.tiktokUrl,
+      snapchatUrl: snapchatUrl ?? this.snapchatUrl,
       maaroofUrl: maaroofUrl ?? this.maaroofUrl,
+      maaroofCertificateUrl: maaroofCertificateUrl ?? this.maaroofCertificateUrl,
       boutiqueActive: boutiqueActive ?? this.boutiqueActive,
       showInstagram: showInstagram ?? this.showInstagram,
       showTiktok: showTiktok ?? this.showTiktok,
+      showSnapchat: showSnapchat ?? this.showSnapchat,
       showMaaroof: showMaaroof ?? this.showMaaroof,
     );
   }
@@ -117,10 +129,13 @@ class UserModel {
       'boutiqueDescription': boutiqueDescription,
       'instagramUrl': instagramUrl,
       'tiktokUrl': tiktokUrl,
+      'snapchatUrl': snapchatUrl,
       'maaroofUrl': maaroofUrl,
+      'maaroofCertificateUrl': maaroofCertificateUrl,
       'boutiqueActive': boutiqueActive,
       'showInstagram': showInstagram,
       'showTiktok': showTiktok,
+      'showSnapchat': showSnapchat,
       'showMaaroof': showMaaroof,
     };
   }
@@ -143,10 +158,13 @@ class UserModel {
       boutiqueDescription: map['boutiqueDescription'],
       instagramUrl: map['instagramUrl'],
       tiktokUrl: map['tiktokUrl'],
+      snapchatUrl: map['snapchatUrl'],
       maaroofUrl: map['maaroofUrl'],
+      maaroofCertificateUrl: map['maaroofCertificateUrl'],
       boutiqueActive: map['boutiqueActive'] ?? true,
       showInstagram: map['showInstagram'] ?? true,
       showTiktok: map['showTiktok'] ?? true,
+      showSnapchat: map['showSnapchat'] ?? true,
       showMaaroof: map['showMaaroof'] ?? true,
     );
   }

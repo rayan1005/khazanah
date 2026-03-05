@@ -73,7 +73,9 @@ class _GlobalVisibilitySectionState extends State<_GlobalVisibilitySection> {
           ? b.showInstagram
           : field == 'showTiktok'
               ? b.showTiktok
-              : b.showMaaroof;
+              : field == 'showSnapchat'
+                  ? b.showSnapchat
+                  : b.showMaaroof;
       if (val) enabled++;
     }
     return enabled > widget.boutiques.length / 2;
@@ -108,6 +110,7 @@ class _GlobalVisibilitySectionState extends State<_GlobalVisibilitySection> {
   Widget build(BuildContext context) {
     final instagramOn = _majorityEnabled('showInstagram');
     final tiktokOn = _majorityEnabled('showTiktok');
+    final snapchatOn = _majorityEnabled('showSnapchat');
     final maaroofOn = _majorityEnabled('showMaaroof');
 
     return Card(
@@ -165,6 +168,16 @@ class _GlobalVisibilitySectionState extends State<_GlobalVisibilitySection> {
                       isEnabled: tiktokOn,
                       onToggle: () =>
                           _toggleAll('showTiktok', !tiktokOn),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _GlobalToggleButton(
+                      label: 'سناب',
+                      icon: Icons.photo_camera_front,
+                      isEnabled: snapchatOn,
+                      onToggle: () =>
+                          _toggleAll('showSnapchat', !snapchatOn),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -318,6 +331,51 @@ class _BoutiqueAdminCardState extends ConsumerState<_BoutiqueAdminCard> {
     }
   }
 
+  Future<void> _deleteBoutique() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('حذف البوتيك نهائياً'),
+        content: Text(
+            'هل تريد حذف البوتيك "${widget.boutique.boutiqueName ?? widget.boutique.name}" نهائياً؟ سيتم تحويل الحساب لمستخدم عادي وحذف جميع بيانات البوتيك.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('حذف نهائياً',
+                style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await FirestoreService().deleteBoutique(widget.boutique.uid);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم حذف البوتيك نهائياً'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final b = widget.boutique;
@@ -433,6 +491,13 @@ class _BoutiqueAdminCardState extends ConsumerState<_BoutiqueAdminCard> {
                     foregroundColor: AppColors.error,
                     side: const BorderSide(color: AppColors.error),
                   ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: _isLoading ? null : _deleteBoutique,
+                  icon: const Icon(Icons.delete_forever,
+                      color: AppColors.error, size: 22),
+                  tooltip: 'حذف نهائياً',
                 ),
               ],
             ),

@@ -7,8 +7,9 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../providers/boutique_provider.dart';
-import '../../services/firestore_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/firestore_service.dart';
+import '../../core/utils/permission_utils.dart';
 import '../../models/boutique_request_model.dart';
 
 class UpgradeToBoutiqueScreen extends ConsumerStatefulWidget {
@@ -26,7 +27,7 @@ class _UpgradeToBoutiqueScreenState
   final _descriptionController = TextEditingController();
   final _instagramController = TextEditingController();
   final _tiktokController = TextEditingController();
-  final _maaroofUrlController = TextEditingController();
+  final _snapchatController = TextEditingController();
 
   XFile? _certificateFile;
   bool _isLoading = false;
@@ -37,11 +38,13 @@ class _UpgradeToBoutiqueScreenState
     _descriptionController.dispose();
     _instagramController.dispose();
     _tiktokController.dispose();
-    _maaroofUrlController.dispose();
+    _snapchatController.dispose();
     super.dispose();
   }
 
   Future<void> _pickCertificate() async {
+    final hasPermission = await PermissionUtils.requestPhotos(context);
+    if (!hasPermission) return;
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: ImageSource.gallery,
@@ -83,10 +86,11 @@ class _UpgradeToBoutiqueScreenState
         tiktokUrl: _tiktokController.text.trim().isEmpty
             ? null
             : _tiktokController.text.trim(),
+        snapchatUrl: _snapchatController.text.trim().isEmpty
+            ? null
+            : _snapchatController.text.trim(),
         maaroofCertificateUrl: certUrl,
-        maaroofUrl: _maaroofUrlController.text.trim().isEmpty
-            ? ''
-            : _maaroofUrlController.text.trim(),
+        maaroofUrl: '',
         status: BoutiqueRequestStatus.pending,
         createdAt: DateTime.now(),
       );
@@ -240,13 +244,13 @@ class _UpgradeToBoutiqueScreenState
                   ),
                   const SizedBox(height: 16),
 
-                  // Ma'roof URL
+                  // Snapchat (optional)
                   TextFormField(
-                    controller: _maaroofUrlController,
+                    controller: _snapchatController,
                     decoration: InputDecoration(
-                      labelText: AppStrings.maaroofUrl,
-                      hintText: 'https://maroof.sa/...',
-                      prefixIcon: const Icon(Icons.link),
+                      labelText: 'حساب سناب شات',
+                      hintText: '@username',
+                      prefixIcon: const Icon(Icons.photo_camera_front),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
