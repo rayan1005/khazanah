@@ -70,8 +70,8 @@ class CategoryModel {
   /// Parse sizeType from Firestore value, with name-based fallback
   /// for categories created before sizeType field was added
   static SizeType _parseSizeType(String? value, String categoryName) {
-    // If explicit value exists, use it
-    if (value != null) {
+    // If explicit value exists and is NOT the default, use it
+    if (value != null && value != 'clothes') {
       switch (value) {
         case 'shoes':
           return SizeType.shoes;
@@ -84,11 +84,12 @@ class CategoryModel {
         case 'none':
           return SizeType.none;
         default:
-          return SizeType.clothes;
+          break; // Fall through to name-based detection
       }
     }
 
-    // Fallback: infer from category name
+    // Always try to infer from category name (handles cases where
+    // sizeType was not explicitly set or defaulted to 'clothes')
     final n = categoryName.toLowerCase();
     if (n.contains('حقائب') || n.contains('حقيبة') || n.contains('شنط') || n.contains('bag')) {
       return SizeType.bags;

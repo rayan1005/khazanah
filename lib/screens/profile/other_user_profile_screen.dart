@@ -6,9 +6,17 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../providers/user_provider.dart';
-import '../../providers/post_provider.dart';
 import '../../widgets/post_card.dart';
 import '../../widgets/empty_state.dart';
+import '../../services/firestore_service.dart';
+import '../../models/post_model.dart';
+
+/// Provider for fetching a specific user's active posts
+final userPostsProvider =
+    FutureProvider.family<List<PostModel>, String>((ref, userId) async {
+  final service = ref.read(firestoreServiceProvider);
+  return service.getUserPosts(userId);
+});
 
 class OtherUserProfileScreen extends ConsumerWidget {
   final String userId;
@@ -138,13 +146,7 @@ class _UserPostsGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Using a simple FutureProvider for the user's posts
-    final postsAsync = ref.watch(
-      FutureProvider((r) async {
-        final service = ref.read(firestoreServiceProvider);
-        return service.getUserPosts(userId);
-      }),
-    );
+    final postsAsync = ref.watch(userPostsProvider(userId));
 
     return postsAsync.when(
       loading: () => const SliverFillRemaining(

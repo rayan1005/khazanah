@@ -272,9 +272,9 @@ class BoutiqueStoreScreen extends ConsumerWidget {
                           if (user.snapchatUrl != null &&
                               (user.showSnapchat || isOwner || isAdmin))
                             _SocialButton(
-                              icon: Icons.photo_camera_front,
+                              icon: Icons.snapchat,
                               label: 'سناب شات',
-                              color: const Color(0xFFFFFC00),
+                              color: const Color(0xFFE4A81D),
                               onTap: () => _launchUrl(user.snapchatUrl!),
                             ),
                           if ((user.maaroofCertificateUrl != null ||

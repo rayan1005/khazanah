@@ -141,5 +141,11 @@ service cloud.firestore {
       allow create: if isAuthenticated() && isNotBanned();
       allow delete: if isAdmin();
     }
+
+    // App settings collection
+    match /appSettings/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
@@ -25,12 +26,13 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
   final _instagramController = TextEditingController();
   final _tiktokController = TextEditingController();
   final _snapchatController = TextEditingController();
-  final _maaroofController = TextEditingController();
 
   XFile? _newLogo;
   XFile? _newCover;
+  XFile? _newCertificate;
   String? _currentLogoUrl;
   String? _currentCoverUrl;
+  String? _currentCertificateUrl;
   bool _isLoading = false;
   bool _initialized = false;
 
@@ -41,7 +43,6 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
     _instagramController.dispose();
     _tiktokController.dispose();
     _snapchatController.dispose();
-    _maaroofController.dispose();
     super.dispose();
   }
 
@@ -53,9 +54,9 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
       _instagramController.text = user.instagramUrl ?? '';
       _tiktokController.text = user.tiktokUrl ?? '';
       _snapchatController.text = user.snapchatUrl ?? '';
-      _maaroofController.text = user.maaroofUrl ?? '';
       _currentLogoUrl = user.boutiqueLogo;
       _currentCoverUrl = user.boutiqueCover;
+      _currentCertificateUrl = user.maaroofCertificateUrl;
       _initialized = true;
     }
   }
@@ -85,6 +86,20 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
     );
     if (image != null) {
       setState(() => _newLogo = image);
+    }
+  }
+
+  Future<void> _pickCertificate() async {
+    final hasPermission = await PermissionUtils.requestPhotos(context);
+    if (!hasPermission) return;
+    final picker = ImagePicker();
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1200,
+      maxHeight: 1200,
+    );
+    if (image != null) {
+      setState(() => _newCertificate = image);
     }
   }
 
@@ -127,8 +142,12 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
       final snapchat = _snapchatController.text.trim();
       data['snapchatUrl'] = snapchat.isNotEmpty ? snapchat : null;
 
-      final maaroof = _maaroofController.text.trim();
-      data['maaroofUrl'] = maaroof.isNotEmpty ? maaroof : null;
+      // Upload new certificate if changed
+      if (_newCertificate != null) {
+        final certUrl = await storageService.uploadMaaroofCertificate(
+            user.uid, _newCertificate!);
+        data['maaroofCertificateUrl'] = certUrl;
+      }
 
       await FirestoreService().updateBoutiqueProfile(user.uid, data);
 
@@ -362,7 +381,7 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
                         controller: _snapchatController,
                         decoration: InputDecoration(
                           labelText: 'حساب سناب شات',
-                          prefixIcon: const Icon(Icons.photo_camera_front),
+                          prefixIcon: const Icon(Icons.snapchat),
                           hintText: 'https://snapchat.com/add/...',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -370,15 +389,76 @@ class _EditBoutiqueScreenState extends ConsumerState<EditBoutiqueScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _maaroofController,
-                        decoration: InputDecoration(
-                          labelText: 'رابط معروف',
-                          prefixIcon: const Icon(Icons.verified_user),
-                          hintText: 'https://maroof.sa/...',
-                          border: OutlineInputBorder(
+                      // Ma'roof Certificate upload
+                      const Text(
+                        'شهادة معروف',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: _pickCertificate,
+                        child: Container(
+                          height: 160,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
                             borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _newCertificate != null || _currentCertificateUrl != null
+                                  ? AppColors.success
+                                  : AppColors.divider,
+                            ),
                           ),
+                          child: _newCertificate != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: kIsWeb
+                                      ? FutureBuilder(
+                                          future: _newCertificate!.readAsBytes(),
+                                          builder: (_, snap) {
+                                            if (snap.hasData) {
+                                              return Image.memory(snap.data!,
+                                                  fit: BoxFit.contain);
+                                            }
+                                            return const Center(
+                                                child: CircularProgressIndicator());
+                                          },
+                                        )
+                                      : Image.file(
+                                          File(_newCertificate!.path),
+                                          fit: BoxFit.contain,
+                                        ),
+                                )
+                              : _currentCertificateUrl != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: CachedNetworkImage(
+                                        imageUrl: _currentCertificateUrl!,
+                                        fit: BoxFit.contain,
+                                        placeholder: (_, __) => const Center(
+                                            child: CircularProgressIndicator()),
+                                      ),
+                                    )
+                                  : const Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.verified_user,
+                                            size: 36,
+                                            color: AppColors.textHint),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          'اضغط لتحميل شهادة معروف',
+                                          style: TextStyle(
+                                            color: AppColors.textHint,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                         ),
                       ),
                       const SizedBox(height: 32),
