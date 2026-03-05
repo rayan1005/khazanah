@@ -37,6 +37,9 @@ class AppColors {
   static const Color newBadge = Color(0xFF10B981);
   static const Color negotiableBadge = Color(0xFFF59E0B);
 
+  // Dark text
+  static const Color darkText = Color(0xFF333333);
+
   // Other
   static const Color divider = Color(0xFFE5E7EB);
   static const Color shimmerBase = Color(0xFFE5E7EB);

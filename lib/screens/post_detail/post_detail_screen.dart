@@ -165,36 +165,38 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
               SliverAppBar(
                 expandedHeight: 320,
                 pinned: true,
-                leading: CircleAvatar(
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.5),
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios,
-                        color: Colors.white, size: 18),
-                    onPressed: () => context.pop(),
+                leading: IconButton(
+                  icon: const CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.arrow_back_ios_new,
+                        size: 16, color: Colors.black),
                   ),
+                  onPressed: () => context.pop(),
                 ),
                 actions: [
-                  CircleAvatar(
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.5),
-                    child: IconButton(
-                      icon: const Icon(Icons.share,
-                          color: Colors.white, size: 18),
-                      onPressed: () {
-                        share_plus.Share.share('شاهد إعلان "${post.title}" على خزانة!');
-                      },
+                  IconButton(
+                    icon: const CircleAvatar(
+                      radius: 16,
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.share,
+                          size: 16, color: Colors.black),
                     ),
+                    onPressed: () {
+                      share_plus.Share.share('شاهد إعلان "${post.title}" على خزانة!');
+                    },
                   ),
-                  const SizedBox(width: 8),
                   if (!isMine)
-                    CircleAvatar(
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.5),
-                      child: IconButton(
-                        icon: const Icon(Icons.flag_outlined,
-                            color: Colors.white, size: 18),
-                        onPressed: _reportPost,
+                    IconButton(
+                      icon: const CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.flag_outlined,
+                            size: 16, color: Colors.black),
                       ),
+                      onPressed: _reportPost,
                     ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 4),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: post.photos.isNotEmpty

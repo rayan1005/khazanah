@@ -129,11 +129,20 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.background,
         selectedColor: themeColor.primary.withValues(alpha: 0.15),
-        labelStyle: GoogleFonts.cairo(fontSize: 13),
+        labelStyle: GoogleFonts.cairo(
+          fontSize: 13,
+          color: AppColors.darkText,
+        ),
+        secondaryLabelStyle: GoogleFonts.cairo(
+          fontSize: 13,
+          color: themeColor.primary,
+          fontWeight: FontWeight.w600,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
         side: const BorderSide(color: AppColors.divider),
+        showCheckmark: false,
       ),
       dividerTheme: const DividerThemeData(
         color: AppColors.divider,
