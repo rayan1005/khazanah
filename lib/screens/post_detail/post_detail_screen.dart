@@ -719,7 +719,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => const SizedBox.shrink(),
         data: (seller) {
-          final whatsappNumber = seller?.phone;
+          final whatsappNumber = post.customWhatsapp ?? seller?.phone;
           return Row(
             children: [
               // Chat button
@@ -848,7 +848,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => const Text('خطأ في تحميل بيانات البائع'),
         data: (seller) {
-          final whatsappNumber = seller?.phone;
+          final whatsappNumber = post.customWhatsapp ?? seller?.phone;
           if (whatsappNumber == null || whatsappNumber.isEmpty) {
             return Container(
               padding: const EdgeInsets.all(14),

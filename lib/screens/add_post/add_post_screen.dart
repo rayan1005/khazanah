@@ -52,6 +52,7 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
   bool _allowChat = true;
   bool _allowWhatsapp = false;
   bool _commentsEnabled = true;
+  final _customWhatsappController = TextEditingController();
 
   bool get isEditing => widget.editPostId != null;
 
@@ -118,6 +119,9 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
           _allowChat = post.allowChat;
           _allowWhatsapp = post.allowWhatsapp;
           _commentsEnabled = post.commentsEnabled;
+          if (post.customWhatsapp != null) {
+            _customWhatsappController.text = post.customWhatsapp!;
+          }
           _existingImageUrls = List.from(post.photos);
           if (post.purchasePrice != null) {
             _purchasePriceController.text = post.purchasePrice!.toStringAsFixed(0);
@@ -300,6 +304,9 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
           'gender': _gender,
           'allowChat': _allowChat,
           'allowWhatsapp': _allowWhatsapp,
+          'customWhatsapp': _customWhatsappController.text.trim().isNotEmpty
+              ? _customWhatsappController.text.trim()
+              : null,
           'commentsEnabled': _commentsEnabled,
         });
         if (mounted) {
@@ -328,6 +335,9 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
           gender: _gender!,
           allowChat: _allowChat,
           allowWhatsapp: _allowWhatsapp,
+          customWhatsapp: _customWhatsappController.text.trim().isNotEmpty
+              ? _customWhatsappController.text.trim()
+              : null,
           commentsEnabled: _commentsEnabled,
           createdAt: DateTime.now(),
         );
@@ -840,6 +850,36 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
               ],
             ),
             const SizedBox(height: 16),
+
+            // Custom WhatsApp number (admin only)
+            Consumer(
+              builder: (context, ref, _) {
+                final currentUser = ref.watch(currentUserStreamProvider).valueOrNull;
+                if (currentUser?.role != 'admin') return const SizedBox.shrink();
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: _customWhatsappController,
+                      keyboardType: TextInputType.phone,
+                      textDirection: TextDirection.ltr,
+                      decoration: InputDecoration(
+                        labelText: 'رقم واتساب مخصص للإعلان',
+                        hintText: '966512345678+',
+                        hintTextDirection: TextDirection.ltr,
+                        prefixIcon: const Icon(Icons.phone, color: Color(0xFF25D366)),
+                        helperText: 'اختياري — سيُستخدم بدلاً من رقمك الشخصي',
+                        helperStyle: const TextStyle(fontSize: 11),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                );
+              },
+            ),
 
             // Comments toggle
             Container(

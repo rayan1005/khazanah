@@ -24,6 +24,8 @@ class PostModel {
   // Contact methods (at least one of chat/whatsapp must be true)
   final bool allowChat;
   final bool allowWhatsapp;
+  // Custom WhatsApp number (admin-only, overrides seller's phone)
+  final String? customWhatsapp;
   // Comments enabled by default, user can disable
   final bool commentsEnabled;
 
@@ -48,6 +50,7 @@ class PostModel {
     required this.createdAt,
     this.allowChat = true,
     this.allowWhatsapp = false,
+    this.customWhatsapp,
     this.commentsEnabled = true,
   });
 
@@ -87,6 +90,7 @@ class PostModel {
     DateTime? createdAt,
     bool? allowChat,
     bool? allowWhatsapp,
+    String? customWhatsapp,
     bool? commentsEnabled,
   }) {
     return PostModel(
@@ -110,6 +114,7 @@ class PostModel {
       createdAt: createdAt ?? this.createdAt,
       allowChat: allowChat ?? this.allowChat,
       allowWhatsapp: allowWhatsapp ?? this.allowWhatsapp,
+      customWhatsapp: customWhatsapp ?? this.customWhatsapp,
       commentsEnabled: commentsEnabled ?? this.commentsEnabled,
     );
   }
@@ -136,6 +141,7 @@ class PostModel {
       'createdAt': Timestamp.fromDate(createdAt),
       'allowChat': allowChat,
       'allowWhatsapp': allowWhatsapp,
+      'customWhatsapp': customWhatsapp,
       'commentsEnabled': commentsEnabled,
     };
   }
@@ -174,6 +180,7 @@ class PostModel {
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       allowChat: allowChat,
       allowWhatsapp: allowWhatsapp,
+      customWhatsapp: map['customWhatsapp'],
       commentsEnabled: map['commentsEnabled'] ?? true,
     );
   }
