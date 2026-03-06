@@ -569,12 +569,34 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
                     error: (_, __) => const SizedBox.shrink(),
                     data: (categories) {
                       final selectedCat = categories.where((c) => c.name == _category).firstOrNull;
-                      final sizeType = selectedCat?.sizeType ?? SizeType.clothes;
+                      var sizeType = selectedCat?.sizeType ?? SizeType.clothes;
+
+                      // Extra safeguard: detect from category name directly
+                      if (sizeType == SizeType.clothes && _category != null) {
+                        final catName = _category!;
+                        if (catName.contains('حقائب') || catName.contains('شنط')) {
+                          sizeType = SizeType.bags;
+                        } else if (catName.contains('أحذية') || catName.contains('جزم')) {
+                          sizeType = SizeType.shoes;
+                        } else if (catName.contains('عباي')) {
+                          sizeType = SizeType.abayas;
+                        } else if (catName.contains('أطفال') || catName.contains('اطفال')) {
+                          sizeType = SizeType.kids;
+                        } else if (catName.contains('إكسسوار') || catName.contains('اكسسوار')) {
+                          sizeType = SizeType.none;
+                        }
+                      }
+
                       final sizes = Sizes.forSizeType(sizeType);
                       
                       // If no sizes for this category, show placeholder
                       if (sizes.isEmpty) {
+                        // Auto-set size so form validation passes
+                        if (_size == null) {
+                          Future.microtask(() => setState(() => _size = 'مقاس موحد'));
+                        }
                         return DropdownButtonFormField<String>(
+                          key: ValueKey('size_none_$_category'),
                           value: 'مقاس موحد',
                           decoration: const InputDecoration(labelText: AppStrings.size),
                           isExpanded: true,
@@ -586,6 +608,7 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
                       }
                       
                       return DropdownButtonFormField<String>(
+                        key: ValueKey('size_${sizeType.name}_$_category'),
                         value: sizes.contains(_size) ? _size : null,
                         decoration: const InputDecoration(labelText: AppStrings.size),
                         isExpanded: true,
