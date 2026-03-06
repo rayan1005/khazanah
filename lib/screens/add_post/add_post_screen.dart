@@ -564,35 +564,32 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
             Row(
               children: [
                 Expanded(
-                  child: categoriesAsync.when(
-                    loading: () => const LinearProgressIndicator(),
-                    error: (_, __) => const SizedBox.shrink(),
-                    data: (categories) {
-                      final selectedCat = categories.where((c) => c.name == _category).firstOrNull;
-                      var sizeType = selectedCat?.sizeType ?? SizeType.clothes;
-
-                      // Extra safeguard: detect from category name directly
-                      if (sizeType == SizeType.clothes && _category != null) {
-                        final catName = _category!;
-                        if (catName.contains('حقائب') || catName.contains('شنط')) {
-                          sizeType = SizeType.bags;
-                        } else if (catName.contains('أحذية') || catName.contains('جزم')) {
-                          sizeType = SizeType.shoes;
-                        } else if (catName.contains('عباي')) {
-                          sizeType = SizeType.abayas;
-                        } else if (catName.contains('أطفال') || catName.contains('اطفال')) {
-                          sizeType = SizeType.kids;
-                        } else if (catName.contains('إكسسوار') || catName.contains('اكسسوار')) {
-                          sizeType = SizeType.none;
+                  child: Builder(
+                    builder: (context) {
+                      // Determine sizes directly from category name — most reliable approach
+                      List<String> sizes;
+                      if (_category == null) {
+                        sizes = Sizes.clothes;
+                      } else {
+                        final cat = _category!;
+                        if (cat.contains('حقائب') || cat.contains('حقيبة') || cat.contains('شنط') || cat == 'bags') {
+                          sizes = Sizes.bags;
+                        } else if (cat.contains('أحذية') || cat.contains('حذاء') || cat.contains('جزم') || cat == 'shoes') {
+                          sizes = Sizes.shoes;
+                        } else if (cat.contains('عباي') || cat.contains('عبايا') || cat == 'abayas') {
+                          sizes = Sizes.abayas;
+                        } else if (cat.contains('أطفال') || cat.contains('اطفال') || cat == 'kids') {
+                          sizes = Sizes.kids;
+                        } else if (cat.contains('إكسسوار') || cat.contains('اكسسوار') || cat == 'accessories') {
+                          sizes = [];
+                        } else {
+                          sizes = Sizes.clothes;
                         }
                       }
 
-                      final sizes = Sizes.forSizeType(sizeType);
-                      
                       // If no sizes for this category, show placeholder
                       if (sizes.isEmpty) {
-                        // Auto-set size so form validation passes
-                        if (_size == null) {
+                        if (_size != 'مقاس موحد') {
                           Future.microtask(() => setState(() => _size = 'مقاس موحد'));
                         }
                         return DropdownButtonFormField<String>(
@@ -606,9 +603,9 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
                           onChanged: (v) => setState(() => _size = v),
                         );
                       }
-                      
+
                       return DropdownButtonFormField<String>(
-                        key: ValueKey('size_${sizeType.name}_$_category'),
+                        key: ValueKey('size_$_category'),
                         value: sizes.contains(_size) ? _size : null,
                         decoration: const InputDecoration(labelText: AppStrings.size),
                         isExpanded: true,
