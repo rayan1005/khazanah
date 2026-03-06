@@ -277,21 +277,16 @@ class BoutiqueStoreScreen extends ConsumerWidget {
                               color: const Color(0xFFE4A81D),
                               onTap: () => _launchUrl(user.snapchatUrl!),
                             ),
-                          if ((user.maaroofCertificateUrl != null ||
-                                  user.maaroofUrl != null) &&
+                          if (user.maaroofCertificateUrl != null &&
+                                  user.maaroofCertificateUrl!.isNotEmpty &&
                               (user.showMaaroof || isOwner || isAdmin))
                             _SocialButton(
                               icon: Icons.verified_user,
                               label: 'معروف',
                               color: const Color(0xFF2E7D32),
                               onTap: () {
-                                if (user.maaroofCertificateUrl != null &&
-                                    user.maaroofCertificateUrl!.isNotEmpty) {
-                                  _showCertificateDialog(
-                                      context, user.maaroofCertificateUrl!);
-                                } else if (user.maaroofUrl != null) {
-                                  _launchUrl(user.maaroofUrl!);
-                                }
+                                _showCertificateDialog(
+                                    context, user.maaroofCertificateUrl!);
                               },
                             ),
                         ],
