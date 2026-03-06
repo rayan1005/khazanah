@@ -315,7 +315,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ? () => ref
                                 .read(firestoreServiceProvider)
                                 .toggleFavorite(uid, post.postId)
-                            : null,
+                            : () => context.push('/login'),
                       );
                     },
                   );

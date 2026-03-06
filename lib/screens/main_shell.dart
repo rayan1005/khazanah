@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/constants/app_strings.dart';
@@ -15,6 +16,15 @@ class MainShell extends StatelessWidget {
     return 0;
   }
 
+  /// Check if user is logged in; if not, redirect to login
+  bool _requireLogin(BuildContext context) {
+    if (FirebaseAuth.instance.currentUser == null) {
+      context.push('/login');
+      return false;
+    }
+    return true;
+  }
+
   void _onTap(BuildContext context, int index) {
     switch (index) {
       case 0:
@@ -22,11 +32,11 @@ class MainShell extends StatelessWidget {
       case 1:
         context.go('/boutiques');
       case 2:
-        context.push('/add-post');
+        if (_requireLogin(context)) context.push('/add-post');
       case 3:
-        context.go('/chats');
+        if (_requireLogin(context)) context.go('/chats');
       case 4:
-        context.go('/profile');
+        if (_requireLogin(context)) context.go('/profile');
     }
   }
 
@@ -36,7 +46,9 @@ class MainShell extends StatelessWidget {
       body: child,
       floatingActionButton: FloatingActionButton(
         heroTag: 'add_post_fab',
-        onPressed: () => context.push('/add-post'),
+        onPressed: () {
+          if (_requireLogin(context)) context.push('/add-post');
+        },
         child: const Icon(Icons.add, size: 32),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

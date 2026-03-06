@@ -48,17 +48,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/home',
     redirect: (context, state) {
       final isLoggedIn = authState.valueOrNull != null;
-      final isAuthRoute = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/otp' ||
-          state.matchedLocation == '/profile-setup' ||
-          state.matchedLocation == '/welcome' ||
-          state.matchedLocation == '/terms' ||
-          state.matchedLocation == '/privacy';
+      final loc = state.matchedLocation;
 
-      if (!isLoggedIn && !isAuthRoute) {
+      // Routes accessible without login (browsing)
+      final isPublicRoute = loc == '/home' ||
+          loc == '/boutiques' ||
+          loc == '/terms' ||
+          loc == '/privacy' ||
+          loc == '/commission-calculator' ||
+          loc == '/welcome' ||
+          loc.startsWith('/post/') ||
+          loc.startsWith('/boutique/') ||
+          loc.startsWith('/user/');
+
+      final isAuthRoute = loc == '/login' ||
+          loc == '/otp' ||
+          loc == '/profile-setup';
+
+      // Allow public routes without login
+      if (!isLoggedIn && !isAuthRoute && !isPublicRoute) {
         return '/login';
       }
-      if (isLoggedIn && isAuthRoute && state.matchedLocation != '/profile-setup') {
+      if (isLoggedIn && isAuthRoute && loc != '/profile-setup') {
         return '/home';
       }
       return null;

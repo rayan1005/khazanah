@@ -45,6 +45,11 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   }
 
   void _openWhatsApp(String phone, String postTitle) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      context.push('/login');
+      return;
+    }
     final msg = Uri.encodeComponent('مرحباً، أنا مهتم بإعلانك: $postTitle');
     final url = 'https://wa.me/${phone.replaceAll('+', '')}?text=$msg';
     if (await canLaunchUrl(Uri.parse(url))) {
@@ -123,7 +128,10 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
 
     if (reason != null && mounted) {
       final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) return;
+      if (uid == null) {
+        context.push('/login');
+        return;
+      }
       await FirestoreService().createReport(
         postId: widget.postId,
         reporterId: uid,
