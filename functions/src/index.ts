@@ -42,10 +42,13 @@ export const sendOTP = functions.https.onCall(async (request) => {
           "Content-Type": "application/json",
           "Accept": "application/json",
         },
+        validateStatus: () => true, // Don't throw on non-2xx
       }
     );
 
-    if (response.data && response.data.success) {
+    functions.logger.info(`sendOTP response: ${JSON.stringify(response.data)}, status: ${response.status}`);
+
+    if (response.data && (response.data.success || response.status === 200)) {
       return {success: true};
     } else {
       throw new functions.https.HttpsError(
@@ -55,11 +58,10 @@ export const sendOTP = functions.https.onCall(async (request) => {
     }
   } catch (error: unknown) {
     if (error instanceof functions.https.HttpsError) throw error;
-    const axiosError = error as {response?: {data?: {message?: string}}};
     functions.logger.error("sendOTP error:", error);
     throw new functions.https.HttpsError(
       "internal",
-      axiosError.response?.data?.message || "فشل إرسال رمز التحقق"
+      "فشل إرسال رمز التحقق"
     );
   }
 });
@@ -97,10 +99,18 @@ export const verifyOTP = functions.https.onCall(async (request) => {
           "Content-Type": "application/json",
           "Accept": "application/json",
         },
+        validateStatus: () => true, // Don't throw on non-2xx
       }
     );
 
-    if (response.data && response.data.success) {
+    functions.logger.info(`verifyOTP response: ${JSON.stringify(response.data)}, status: ${response.status}`);
+
+    // Check if OTP was verified (Authentica may return success in body even with non-200 status)
+    const isVerified = response.data &&
+      (response.data.success === true ||
+       (response.data.message && response.data.message.toLowerCase().includes("verified successfully")));
+
+    if (isVerified) {
       // OTP verified — create or get Firebase user & issue token
       const uid = await getOrCreateUser(phone);
       const token = await admin.auth().createCustomToken(uid);
@@ -113,11 +123,10 @@ export const verifyOTP = functions.https.onCall(async (request) => {
     }
   } catch (error: unknown) {
     if (error instanceof functions.https.HttpsError) throw error;
-    const axiosError = error as {response?: {data?: {message?: string}}};
     functions.logger.error("verifyOTP error:", error);
     throw new functions.https.HttpsError(
       "unauthenticated",
-      axiosError.response?.data?.message || "رمز التحقق غير صحيح"
+      "رمز التحقق غير صحيح"
     );
   }
 });

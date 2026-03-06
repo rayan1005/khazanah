@@ -1,7 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/auth_provider.dart';
 import '../../screens/auth/login_screen.dart';
 import '../../screens/auth/otp_screen.dart';
 import '../../screens/auth/profile_setup_screen.dart';
@@ -40,14 +40,26 @@ import '../../screens/web/web_landing_screen.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
-final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
+/// A ChangeNotifier that listens to Firebase auth state changes.
+/// Used by GoRouter.refreshListenable to re-evaluate redirects
+/// without recreating the entire router.
+class _AuthNotifier extends ChangeNotifier {
+  _AuthNotifier() {
+    FirebaseAuth.instance.authStateChanges().listen((_) {
+      notifyListeners();
+    });
+  }
+}
 
+final _authNotifier = _AuthNotifier();
+
+final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/home',
+    refreshListenable: _authNotifier,
     redirect: (context, state) {
-      final isLoggedIn = authState.valueOrNull != null;
+      final isLoggedIn = FirebaseAuth.instance.currentUser != null;
       final loc = state.matchedLocation;
 
       // Routes accessible without login (browsing)
