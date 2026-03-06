@@ -254,19 +254,26 @@ class FirestoreService {
         .map((snap) => snap.docs.map((d) => BrandModel.fromDoc(d)).toList());
   }
 
-  /// Get brands that have posts in a specific city
-  Future<List<String>> brandsInCity(String city) async {
-    final snapshot = await _db
+  /// Get brands that have active posts, optionally filtered by city
+  Future<Set<String>> activeBrandNames({String? city}) async {
+    Query<Map<String, dynamic>> query = _db
         .collection(FirestorePaths.posts)
-        .where('status', isEqualTo: PostStatus.active.name)
-        .where('city', isEqualTo: city)
-        .get();
-    final brands = snapshot.docs
+        .where('status', isEqualTo: PostStatus.active.name);
+    if (city != null && city.isNotEmpty) {
+      query = query.where('city', isEqualTo: city);
+    }
+    final snapshot = await query.get();
+    return snapshot.docs
         .map((d) => d.data()['brand'] as String?)
         .where((b) => b != null && b.isNotEmpty)
-        .toSet()
-        .toList();
-    return brands.cast<String>();
+        .cast<String>()
+        .toSet();
+  }
+
+  /// Get brands that have posts in a specific city (legacy)
+  Future<List<String>> brandsInCity(String city) async {
+    final names = await activeBrandNames(city: city);
+    return names.toList();
   }
 
   Future<void> addBrand(BrandModel brand) async {

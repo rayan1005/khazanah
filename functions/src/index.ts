@@ -8,9 +8,7 @@ const AUTHENTICA_API_KEY =
   "$2y$10$4dEwMGaqU5ZGwKj5Ul6K8.4Mo9y59MnZidt.PR83EI.SOkUxjdQfu";
 const AUTHENTICA_BASE_URL = "https://api.authentica.sa/api/sdk/v1";
 
-// Test account bypass
-const TEST_PHONE = "+966562726777";
-const TEST_OTP = "7777";
+// Test account bypass removed — all numbers go through Authentica API
 
 /**
  * sendOTP - Sends OTP via Authentica API
@@ -29,12 +27,6 @@ export const sendOTP = functions.https.onCall(async (request) => {
       "invalid-argument",
       "رقم الهاتف غير صالح. يجب أن يبدأ بـ +966 ويتكون من 9 أرقام."
     );
-  }
-
-  // Test account bypass — don't call Authentica API
-  if (phone === TEST_PHONE) {
-    functions.logger.info(`Test account OTP requested: ${phone}`);
-    return {success: true};
   }
 
   try {
@@ -90,14 +82,6 @@ export const verifyOTP = functions.https.onCall(async (request) => {
       "invalid-argument",
       "رقم الهاتف ورمز التحقق مطلوبان"
     );
-  }
-
-  // Test account bypass
-  if (phone === TEST_PHONE && otp === TEST_OTP) {
-    functions.logger.info(`Test account verified: ${phone}`);
-    const uid = await getOrCreateUser(phone);
-    const token = await admin.auth().createCustomToken(uid);
-    return {success: true, token, uid};
   }
 
   try {

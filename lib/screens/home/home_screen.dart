@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -52,7 +53,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final postsAsync = ref.watch(postListProvider);
     final selectedCity = ref.watch(selectedCityProvider);
     final filters = ref.watch(postFiltersProvider);
-    final brandsAsync = ref.watch(brandsStreamProvider);
+    final brandsAsync = ref.watch(visibleBrandsProvider);
     final uid = FirebaseAuth.instance.currentUser?.uid;
     final favoritesAsync = uid != null
         ? ref.watch(favoritesStreamProvider(uid))
@@ -158,10 +159,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                             child: ClipOval(
                               child: brand.imageUrl != null && brand.imageUrl!.isNotEmpty
-                                  ? Image.network(
-                                      brand.imageUrl!,
+                                  ? CachedNetworkImage(
+                                      imageUrl: brand.imageUrl!,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => _brandFallback(brand.name),
+                                      placeholder: (_, __) => Container(
+                                        color: AppColors.primary.withValues(alpha: 0.05),
+                                        child: const Center(
+                                          child: SizedBox(
+                                            width: 16, height: 16,
+                                            child: CircularProgressIndicator(strokeWidth: 1.5),
+                                          ),
+                                        ),
+                                      ),
+                                      errorWidget: (_, __, ___) => _brandFallback(brand.name),
                                     )
                                   : _brandFallback(brand.name),
                             ),
